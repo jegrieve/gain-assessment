@@ -21,6 +21,29 @@
     modal.id = "gain-questionnaire-modal";
 
     modal.innerHTML = `
+        <ol id="gain-progress" aria-label="Questionnaire progress">
+            <li class="gain-progress-item">
+                <span class="gain-progress-circle">1</span>
+                <span class="gain-progress-label">Services</span>
+            </li>
+            <li class="gain-progress-item">
+                <span class="gain-progress-circle">2</span>
+                <span class="gain-progress-label">Industry</span>
+            </li>
+            <li class="gain-progress-item">
+                <span class="gain-progress-circle">3</span>
+                <span class="gain-progress-label">Resources</span>
+            </li>
+            <li class="gain-progress-item">
+                <span class="gain-progress-circle">4</span>
+                <span class="gain-progress-label">Timeline</span>
+            </li>
+            <li class="gain-progress-item">
+                <span class="gain-progress-circle">5</span>
+                <span class="gain-progress-label">Results</span>
+            </li>
+        </ol>
+
         <div id="gain-step-1">
             <h2>What do you need help with?</h2>
             <div id="gain-service-options"></div>
@@ -236,7 +259,6 @@
             link.textContent = study.title;
 
             const label = document.createElement("span");
-            //TODO: Remove
             label.textContent = industryMatches(study.industry)
                 ? " — Exact match"
                 : " — Related";
@@ -246,10 +268,6 @@
         });
 
         content.append(list);
-        //TODO: remove
-        console.log("Exact matches:", exactMatches);
-        console.log("Related matches:", relatedMatches);
-        console.log("Final recommendations:", recommendations);
     }
 
     // Update results based on questionnaire answers
@@ -316,6 +334,7 @@
 
     // Next and Back navigation
     const steps = modal.querySelectorAll('[id^="gain-step-"]');
+    const progressItems = modal.querySelectorAll(".gain-progress-item");
     const nextButton = modal.querySelector("#gain-next");
     const backButton = modal.querySelector("#gain-back");
 
@@ -328,6 +347,26 @@
 
         backButton.hidden = currentStep === 1;
         nextButton.hidden = currentStep === 5;
+
+        // Update progress indicator
+        progressItems.forEach((item, index) => {
+            const stepNumber = index + 1;
+            const isComplete = stepNumber < currentStep;
+            const isActive = stepNumber === currentStep;
+
+            item.classList.toggle("is-complete", isComplete);
+            item.classList.toggle("is-active", isActive);
+            item.classList.toggle("is-upcoming", stepNumber > currentStep);
+
+            const circle = item.querySelector(".gain-progress-circle");
+            circle.textContent = isComplete ? "✓" : stepNumber;
+
+            if (isActive) {
+                item.setAttribute("aria-current", "step");
+            } else {
+                item.removeAttribute("aria-current");
+            }
+        });
     }
 
     nextButton.addEventListener("click", () => {
@@ -359,4 +398,7 @@
         currentStep = 2;
         showStep();
     });
+
+    // Set initial progress state
+    showStep();
 })();

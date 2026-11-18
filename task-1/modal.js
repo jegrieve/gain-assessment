@@ -169,6 +169,89 @@
         });
     }
 
+    // Get matching case studies from the Work slider
+    function addCaseStudies(content, selectedServices, selectedIndustries) {
+        const cards = document.querySelectorAll(".content-slider .content-card--work");
+
+        const caseStudies = Array.from(cards, card => {
+            const link = card.querySelector(".content-card__link");
+            const tags = card.querySelectorAll(".content-tags li");
+
+            return {
+                title: link.textContent.trim(),
+                service: tags[0].textContent.trim(),
+                industry: tags[1].textContent.trim(),
+                url: link.href
+            };
+        });
+
+        // Handle different industry labels used on the website
+        function industryMatches(industry) {
+            return selectedIndustries.includes(industry) ||
+                (industry === "Tech & Telcoms" && selectedIndustries.includes("Tech & Telco"));
+        }
+
+        // Both service and industry match
+        const exactMatches = caseStudies.filter(study =>
+            selectedServices.includes(study.service) &&
+            industryMatches(study.industry)
+        );
+
+        // Only the service matches
+        const relatedMatches = caseStudies.filter(study =>
+            selectedServices.includes(study.service) &&
+            !industryMatches(study.industry)
+        );
+
+        // Exact matches first, maximum 3 results
+        const recommendations = [
+            ...exactMatches,
+            ...relatedMatches
+        ].slice(0, 3);
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Recommended case studies";
+        content.append(heading);
+
+        if (recommendations.length === 0) {
+            const message = document.createElement("p");
+            message.textContent = "No matching case studies found. ";
+
+            const link = document.createElement("a");
+            link.href = "https://www.thisisgain.com/work/";
+            link.textContent = "Browse all our work";
+
+            message.append(link);
+            content.append(message);
+            return;
+        }
+
+        const list = document.createElement("ul");
+
+        recommendations.forEach(study => {
+            const item = document.createElement("li");
+
+            const link = document.createElement("a");
+            link.href = study.url;
+            link.textContent = study.title;
+
+            const label = document.createElement("span");
+            //TODO: Remove
+            label.textContent = industryMatches(study.industry)
+                ? " — Exact match"
+                : " — Related";
+
+            item.append(link, label);
+            list.append(item);
+        });
+
+        content.append(list);
+        //TODO: remove
+        console.log("Exact matches:", exactMatches);
+        console.log("Related matches:", relatedMatches);
+        console.log("Final recommendations:", recommendations);
+    }
+
     // Update results based on questionnaire answers
     function updateResults() {
         const timeline = modal.querySelector('input[name="gain-timeline"]:checked').value;
@@ -202,15 +285,7 @@
             }
         }
 
-        // Show articles when requested, or when exploring and requesting contact
-        if (
-            resource === "Articles to read" ||
-            (resource === "Talk to someone" && timeline === "Just exploring")
-        ) {
-            addArticles(content);
-        }
-
-        // Show selected services and industries in the results summary
+        // Read the user's selected services and industries
         const selectedServices = Array.from(
             modal.querySelectorAll("#gain-step-1 input:checked"),
             input => input.value
@@ -221,6 +296,20 @@
             input => input.value
         );
 
+        // Show case studies when requested
+        if (resource === "Case studies like mine") {
+            addCaseStudies(content, selectedServices, selectedIndustries);
+        }
+
+        // Show articles when requested, or when exploring and requesting contact
+        if (
+            resource === "Articles to read" ||
+            (resource === "Talk to someone" && timeline === "Just exploring")
+        ) {
+            addArticles(content);
+        }
+
+        // Show selected services and industries in the results summary
         modal.querySelector("#gain-summary-services").textContent = selectedServices.join(", ");
         modal.querySelector("#gain-summary-industries").textContent = selectedIndustries.join(", ");
     }

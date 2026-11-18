@@ -48,6 +48,22 @@
         <div id="gain-step-5" hidden>
             <h2 id="gain-results-heading">Your results</h2>
             <div id="gain-results-content"></div>
+
+            <div id="gain-results-summary">
+                <h3>Your answers</h3>
+
+                <p>
+                    <strong>Services:</strong>
+                    <span id="gain-summary-services"></span>
+                </p>
+                <button id="gain-edit-services" type="button">Edit services</button>
+
+                <p>
+                    <strong>Industries:</strong>
+                    <span id="gain-summary-industries"></span>
+                </p>
+                <button id="gain-edit-industries" type="button">Edit industries</button>
+            </div>
         </div>
 
         <button id="gain-back" type="button" hidden>Back</button>
@@ -153,7 +169,7 @@
         });
     }
 
-    // Update results based on Questions 3 and 4
+    // Update results based on questionnaire answers
     function updateResults() {
         const timeline = modal.querySelector('input[name="gain-timeline"]:checked').value;
         const resource = modal.querySelector('input[name="gain-resource"]:checked').value;
@@ -193,6 +209,20 @@
         ) {
             addArticles(content);
         }
+
+        // Show selected services and industries in the results summary
+        const selectedServices = Array.from(
+            modal.querySelectorAll("#gain-step-1 input:checked"),
+            input => input.value
+        );
+
+        const selectedIndustries = Array.from(
+            modal.querySelectorAll("#gain-step-2 input:checked"),
+            input => input.value
+        );
+
+        modal.querySelector("#gain-summary-services").textContent = selectedServices.join(", ");
+        modal.querySelector("#gain-summary-industries").textContent = selectedIndustries.join(", ");
     }
 
     // Next and Back navigation
@@ -227,6 +257,17 @@
 
     backButton.addEventListener("click", () => {
         currentStep--;
+        showStep();
+    });
+
+    // Return to a question to edit previous answers
+    modal.querySelector("#gain-edit-services").addEventListener("click", () => {
+        currentStep = 1;
+        showStep();
+    });
+
+    modal.querySelector("#gain-edit-industries").addEventListener("click", () => {
+        currentStep = 2;
         showStep();
     });
 })();

@@ -7,6 +7,7 @@ This document captures my thought process, key decisions, and challenges through
 ### Initial Approach
 
 Use Flexbox and build responsively from the start. Read content dynamically from the DOM rather than hardcoding it.
+Build the HTML structure and functionality first, then focus on CSS styling once everything is working.
 
 ## Task 2 — Footer Drawer
 

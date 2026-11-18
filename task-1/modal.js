@@ -47,7 +47,7 @@
 
         <div id="gain-step-5" hidden>
             <h2 id="gain-results-heading">Your results</h2>
-            <p>Results will go here.</p>
+            <div id="gain-results-content"></div>
         </div>
 
         <button id="gain-back" type="button" hidden>Back</button>
@@ -111,17 +111,87 @@
         input.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
     });
 
-    // Update results heading based on Question 4
+    // Get the 3 latest articles from the Insights slider
+    function addArticles(content) {
+        const headings = Array.from(document.querySelectorAll("#main-content h2, #main-content h3"));
+
+        const insightsIndex = headings.findIndex(heading =>
+            heading.tagName === "H2" && heading.textContent.trim() === "Insights"
+        );
+
+        if (insightsIndex === -1) return;
+
+        const articles = headings
+            .slice(insightsIndex + 1)
+            .filter(heading => heading.tagName === "H3")
+            .slice(0, 3);
+
+        const articlesHeading = document.createElement("h3");
+        articlesHeading.textContent = "Recommended articles";
+        content.append(articlesHeading);
+
+        articles.forEach(heading => {
+            // Find the article link within its surrounding card
+            let link = heading.querySelector("a[href]");
+            let parent = heading.parentElement;
+
+            while (!link && parent && parent.id !== "main-content") {
+                link = parent.querySelector("a[href]");
+                parent = parent.parentElement;
+            }
+
+            if (!link) return;
+
+            const articleLink = document.createElement("a");
+            articleLink.href = link.href;
+            articleLink.textContent = heading.textContent.trim();
+
+            const paragraph = document.createElement("p");
+            paragraph.append(articleLink);
+
+            content.append(paragraph);
+        });
+    }
+
+    // Update results based on Questions 3 and 4
     function updateResults() {
         const timeline = modal.querySelector('input[name="gain-timeline"]:checked').value;
+        const resource = modal.querySelector('input[name="gain-resource"]:checked').value;
         const heading = modal.querySelector("#gain-results-heading");
+        const content = modal.querySelector("#gain-results-content");
 
+        // Set heading based on timeline
         if (timeline === "Right away") {
             heading.textContent = "Let's talk this week";
         } else if (timeline === "In the next 3 months") {
             heading.textContent = "Here's where to start";
         } else {
             heading.textContent = "Take your time";
+        }
+
+        // Clear previous results
+        content.replaceChildren();
+
+        // Show email if starting right away or requesting contact
+        if (timeline === "Right away" || resource === "Talk to someone") {
+            const footerEmail = document.querySelector('footer a[href^="mailto:"]');
+
+            if (footerEmail) {
+                const emailLink = document.createElement("a");
+
+                emailLink.href = footerEmail.href;
+                emailLink.textContent = footerEmail.getAttribute("href").replace("mailto:", "");
+
+                content.append(emailLink);
+            }
+        }
+
+        // Show articles when requested, or when exploring and requesting contact
+        if (
+            resource === "Articles to read" ||
+            (resource === "Talk to someone" && timeline === "Just exploring")
+        ) {
+            addArticles(content);
         }
     }
 

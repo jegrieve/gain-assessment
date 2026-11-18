@@ -31,6 +31,25 @@
             <div id="gain-industry-options"></div>
         </div>
 
+        <div id="gain-step-3" hidden>
+            <h2>What would be most useful right now?</h2>
+            <label><input type="radio" name="gain-resource" value="Case studies like mine"> Case studies like mine</label>
+            <label><input type="radio" name="gain-resource" value="Articles to read"> Articles to read</label>
+            <label><input type="radio" name="gain-resource" value="Talk to someone"> Talk to someone</label>
+        </div>
+
+        <div id="gain-step-4" hidden>
+            <h2>When are you looking to start?</h2>
+            <label><input type="radio" name="gain-timeline" value="Right away"> Right away</label>
+            <label><input type="radio" name="gain-timeline" value="In the next 3 months"> In the next 3 months</label>
+            <label><input type="radio" name="gain-timeline" value="Just exploring"> Just exploring</label>
+        </div>
+
+        <div id="gain-step-5" hidden>
+            <h2>Your results</h2>
+            <p>Results will go here.</p>
+        </div>
+
         <button id="gain-back" type="button" hidden>Back</button>
         <button id="gain-next" type="button">Next</button>
         <button id="gain-close" type="button">Close</button>
@@ -39,6 +58,7 @@
     document.body.append(modal);
 
     section.querySelector("button").addEventListener("click", () => modal.showModal());
+
     // TODO: Reset questionnaire when modal closes
     modal.querySelector("#gain-close").addEventListener("click", () => modal.close());
 
@@ -86,27 +106,38 @@
         industryOptions.append(label);
     });
 
+    // TODO: Move temporary radio styling to CSS
+    modal.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
+    });
+
     // Next and Back navigation
-    const step1 = modal.querySelector("#gain-step-1");
-    const step2 = modal.querySelector("#gain-step-2");
+    const steps = modal.querySelectorAll('[id^="gain-step-"]');
     const nextButton = modal.querySelector("#gain-next");
     const backButton = modal.querySelector("#gain-back");
 
+    let currentStep = 1;
+
+    function showStep() {
+        steps.forEach((step, index) => {
+            step.hidden = index !== currentStep - 1;
+        });
+
+        backButton.hidden = currentStep === 1;
+        nextButton.hidden = currentStep === 5;
+    }
+
     nextButton.addEventListener("click", () => {
-        const selected = step1.querySelectorAll("input:checked");
+        const current = steps[currentStep - 1];
 
-        if (selected.length === 0) return;
+        if (!current.querySelector("input:checked")) return;
 
-        step1.hidden = true;
-        step2.hidden = false;
-        backButton.hidden = false;
-        nextButton.hidden = true;
+        currentStep++;
+        showStep();
     });
 
     backButton.addEventListener("click", () => {
-        step1.hidden = false;
-        step2.hidden = true;
-        backButton.hidden = true;
-        nextButton.hidden = false;
+        currentStep--;
+        showStep();
     });
 })();

@@ -4,7 +4,9 @@ This document captures my thought process, key decisions, and challenges through
 
 ## Task 1 — Dynamic Modal
 
-*To be added.*
+### Initial Approach
+
+Use Flexbox and build responsively from the start. Read content dynamically from the DOM rather than hardcoding it.
 
 ## Task 2 — Footer Drawer
 

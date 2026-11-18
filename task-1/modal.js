@@ -46,7 +46,7 @@
         </div>
 
         <div id="gain-step-5" hidden>
-            <h2>Your results</h2>
+            <h2 id="gain-results-heading">Your results</h2>
             <p>Results will go here.</p>
         </div>
 
@@ -111,6 +111,20 @@
         input.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
     });
 
+    // Update results heading based on Question 4
+    function updateResults() {
+        const timeline = modal.querySelector('input[name="gain-timeline"]:checked').value;
+        const heading = modal.querySelector("#gain-results-heading");
+
+        if (timeline === "Right away") {
+            heading.textContent = "Let's talk this week";
+        } else if (timeline === "In the next 3 months") {
+            heading.textContent = "Here's where to start";
+        } else {
+            heading.textContent = "Take your time";
+        }
+    }
+
     // Next and Back navigation
     const steps = modal.querySelectorAll('[id^="gain-step-"]');
     const nextButton = modal.querySelector("#gain-next");
@@ -133,6 +147,11 @@
         if (!current.querySelector("input:checked")) return;
 
         currentStep++;
+
+        if (currentStep === 5) {
+            updateResults();
+        }
+
         showStep();
     });
 

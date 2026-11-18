@@ -20,26 +20,115 @@
     const modal = document.createElement("dialog");
     modal.id = "gain-questionnaire-modal";
 
+    // Progress icons from Lucide: https://lucide.dev (ISC License)
     modal.innerHTML = `
         <ol id="gain-progress" aria-label="Questionnaire progress">
             <li class="gain-progress-item">
-                <span class="gain-progress-circle">1</span>
+                <span class="gain-progress-circle">
+                    <!-- Briefcase: Services -->
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 12h.01"/>
+                        <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                        <path d="M22 13a18.15 18.15 0 0 1-20 0"/>
+                        <rect width="20" height="14" x="2" y="6" rx="2"/>
+                    </svg>
+                    <span class="gain-progress-check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </span>
+                </span>
                 <span class="gain-progress-label">Services</span>
             </li>
+
             <li class="gain-progress-item">
-                <span class="gain-progress-circle">2</span>
+                <span class="gain-progress-circle">
+                    <!-- Building: Industry -->
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 10h.01"/>
+                        <path d="M12 14h.01"/>
+                        <path d="M12 6h.01"/>
+                        <path d="M16 10h.01"/>
+                        <path d="M16 14h.01"/>
+                        <path d="M16 6h.01"/>
+                        <path d="M8 10h.01"/>
+                        <path d="M8 14h.01"/>
+                        <path d="M8 6h.01"/>
+                        <path d="M9 22v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
+                        <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    </svg>
+                    <span class="gain-progress-check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </span>
+                </span>
                 <span class="gain-progress-label">Industry</span>
             </li>
+
             <li class="gain-progress-item">
-                <span class="gain-progress-circle">3</span>
+                <span class="gain-progress-circle">
+                    <!-- Book: Resources -->
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>
+                    </svg>
+                    <span class="gain-progress-check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </span>
+                </span>
                 <span class="gain-progress-label">Resources</span>
             </li>
+
             <li class="gain-progress-item">
-                <span class="gain-progress-circle">4</span>
+                <span class="gain-progress-circle">
+                    <!-- Clock: Timeline -->
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span class="gain-progress-check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </span>
+                </span>
                 <span class="gain-progress-label">Timeline</span>
             </li>
+
             <li class="gain-progress-item">
-                <span class="gain-progress-circle">5</span>
+                <span class="gain-progress-circle">
+                    <!-- Flag: Results -->
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/>
+                    </svg>
+                    <span class="gain-progress-check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </span>
+                </span>
                 <span class="gain-progress-label">Results</span>
             </li>
         </ol>
@@ -358,9 +447,6 @@
             item.classList.toggle("is-active", isActive);
             item.classList.toggle("is-upcoming", stepNumber > currentStep);
 
-            const circle = item.querySelector(".gain-progress-circle");
-            circle.textContent = isComplete ? "✓" : stepNumber;
-
             if (isActive) {
                 item.setAttribute("aria-current", "step");
             } else {
@@ -402,3 +488,106 @@
     // Set initial progress state
     showStep();
 })();
+
+// TODO: Move CSS into modal.css before submission
+const style = document.createElement("style");
+
+style.textContent = `
+    #gain-progress {
+        display: flex;
+        gap: 12px;
+        list-style: none;
+        padding: 0;
+    }
+
+    .gain-progress-item {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+
+    /* Lines connecting circles */
+    .gain-progress-item:not(:first-child)::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        right: 50%;
+        width: 100%;
+        height: 4px;
+        background: #ddd;
+    }
+
+    /* Blue lines for completed progress */
+    .gain-progress-item.is-active::before,
+    .gain-progress-item.is-complete::before {
+        background: #5579ce;
+    }
+
+    /* Default circles */
+    .gain-progress-circle {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        position: relative;
+        z-index: 1;
+        background: white;
+        color: #777;
+    }
+
+    /* Active circle */
+    .is-active .gain-progress-circle {
+        background: #5579ce;
+        border-color: #5579ce;
+        color: white;
+    }
+
+    /* Completed circle */
+    .is-complete .gain-progress-circle {
+        background: #5579ce;
+        border-color: #5579ce;
+        color: white;
+    }
+
+    /* Active label */
+    .is-active .gain-progress-label {
+        color: #5579ce;
+        font-weight: bold;
+    }
+
+    /* Completed label */
+    .is-complete .gain-progress-label {
+        color: #5579ce;
+    }
+
+    /* Green checkmark badge on completed steps */
+    .gain-progress-check {
+        display: none;
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        background: #28a745;
+        color: white;
+        border: 2px solid white;
+        border-radius: 50%;
+        box-sizing: border-box;
+    }
+
+    .is-complete .gain-progress-check {
+        display: flex;
+    }
+`;
+
+document.head.append(style);

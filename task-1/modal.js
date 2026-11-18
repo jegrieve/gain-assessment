@@ -1,4 +1,5 @@
 (() => {
+    // Add section under hero
     const hero = document.querySelector("#main-content h1");
 
     if (!hero || document.querySelector("#gain-questionnaire-section")) return;
@@ -13,4 +14,18 @@
     `;
 
     hero.parentElement.after(section);
+    
+    // Add "Get Started" Modal
+    const modal = document.createElement("dialog");
+    modal.id = "gain-questionnaire-modal";
+
+    modal.innerHTML = `
+        <h2>Questionnaire</h2>
+        <button type="button">Close</button>
+    `;
+
+    document.body.append(modal);
+
+    section.querySelector("button").addEventListener("click", () => modal.showModal());
+    modal.querySelector("button").addEventListener("click", () => modal.close());
 })();

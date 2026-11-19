@@ -1,4 +1,3 @@
-
 (() => {
     // Add section under hero
     const hero = document.querySelector("#main-content h1");
@@ -22,6 +21,8 @@
 
     // Progress icons from Lucide: https://lucide.dev (ISC License)
     modal.innerHTML = `
+        <button id="gain-close" type="button" aria-label="Close questionnaire">&times;</button>
+
         <ol id="gain-progress" aria-label="Questionnaire progress">
             <li class="gain-progress-item">
                 <span class="gain-progress-circle">
@@ -178,22 +179,33 @@
             </div>
         </div>
 
-        <button id="gain-back" type="button" hidden>Back</button>
-        <button id="gain-next" type="button">Next</button>
-        <button id="gain-close" type="button">Close</button>
+        <div class="gain-modal-actions">
+            <button id="gain-back" type="button" hidden>Back</button>
+            <button id="gain-next" type="button">Next</button>
+        </div>
     `;
 
     document.body.append(modal);
 
-    section.querySelector("button").addEventListener("click", () => modal.showModal());
+    // Open modal
+    section.querySelector("button").addEventListener("click", () => {
+        modal.showModal();
+    });
 
-    // TODO: Reset questionnaire when modal closes
-    modal.querySelector("#gain-close").addEventListener("click", () => modal.close());
+    // Close modal
+    modal.querySelector("#gain-close").addEventListener("click", () => {
+        modal.close();
+    });
 
     // Get services from the Solutions menu
     // TODO: Handle selector edge cases
     const services = document.querySelectorAll(".site-navigation__submenu-link-title");
-    const serviceNames = Array.from(services, service => service.textContent.trim());
+
+    const serviceNames = Array.from(
+        services,
+        service => service.textContent.trim()
+    );
+
     const options = modal.querySelector("#gain-service-options");
 
     serviceNames.forEach(name => {
@@ -202,9 +214,6 @@
 
         checkbox.type = "checkbox";
         checkbox.value = name;
-
-        // TODO: Move temporary checkbox styling to CSS
-        checkbox.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
 
         label.append(checkbox, name);
         options.append(label);
@@ -216,7 +225,11 @@
 
     const sectorsContainer = sectorsHeading.closest(".wp-block-columns");
     const sectorLinks = sectorsContainer.querySelectorAll(".wp-block-button__link");
-    const industryNames = Array.from(sectorLinks, link => link.textContent.trim());
+
+    const industryNames = Array.from(
+        sectorLinks,
+        link => link.textContent.trim()
+    );
 
     const industryOptions = modal.querySelector("#gain-industry-options");
 
@@ -227,24 +240,19 @@
         checkbox.type = "checkbox";
         checkbox.value = name;
 
-        // TODO: Move temporary checkbox styling to CSS
-        checkbox.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
-
         label.append(checkbox, name);
         industryOptions.append(label);
     });
 
-    // TODO: Move temporary radio styling to CSS
-    modal.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.style.cssText = "position: static !important; width: 18px !important; height: 18px !important;";
-    });
-
     // Get the 3 latest articles from the Insights slider
     function addArticles(content) {
-        const headings = Array.from(document.querySelectorAll("#main-content h2, #main-content h3"));
+        const headings = Array.from(
+            document.querySelectorAll("#main-content h2, #main-content h3")
+        );
 
         const insightsIndex = headings.findIndex(heading =>
-            heading.tagName === "H2" && heading.textContent.trim() === "Insights"
+            heading.tagName === "H2" &&
+            heading.textContent.trim() === "Insights"
         );
 
         if (insightsIndex === -1) return;
@@ -283,7 +291,9 @@
 
     // Get matching case studies from the Work slider
     function addCaseStudies(content, selectedServices, selectedIndustries) {
-        const cards = document.querySelectorAll(".content-slider .content-card--work");
+        const cards = document.querySelectorAll(
+            ".content-slider .content-card--work"
+        );
 
         const caseStudies = Array.from(cards, card => {
             const link = card.querySelector(".content-card__link");
@@ -300,7 +310,10 @@
         // Handle different industry labels used on the website
         function industryMatches(industry) {
             return selectedIndustries.includes(industry) ||
-                (industry === "Tech & Telcoms" && selectedIndustries.includes("Tech & Telco"));
+                (
+                    industry === "Tech & Telcoms" &&
+                    selectedIndustries.includes("Tech & Telco")
+                );
         }
 
         // Both service and industry match
@@ -348,9 +361,12 @@
             link.textContent = study.title;
 
             const label = document.createElement("span");
-            label.textContent = industryMatches(study.industry)
-                ? " — Exact match"
-                : " — Related";
+            const isExact = industryMatches(study.industry);
+
+            label.textContent = isExact ? "Exact match" : "Related";
+            label.className = isExact
+                ? "gain-match-exact"
+                : "gain-match-related";
 
             item.append(link, label);
             list.append(item);
@@ -361,8 +377,14 @@
 
     // Update results based on questionnaire answers
     function updateResults() {
-        const timeline = modal.querySelector('input[name="gain-timeline"]:checked').value;
-        const resource = modal.querySelector('input[name="gain-resource"]:checked').value;
+        const timeline = modal.querySelector(
+            'input[name="gain-timeline"]:checked'
+        ).value;
+
+        const resource = modal.querySelector(
+            'input[name="gain-resource"]:checked'
+        ).value;
+
         const heading = modal.querySelector("#gain-results-heading");
         const content = modal.querySelector("#gain-results-content");
 
@@ -380,13 +402,17 @@
 
         // Show email if starting right away or requesting contact
         if (timeline === "Right away" || resource === "Talk to someone") {
-            const footerEmail = document.querySelector('footer a[href^="mailto:"]');
+            const footerEmail = document.querySelector(
+                'footer a[href^="mailto:"]'
+            );
 
             if (footerEmail) {
                 const emailLink = document.createElement("a");
 
                 emailLink.href = footerEmail.href;
-                emailLink.textContent = footerEmail.getAttribute("href").replace("mailto:", "");
+                emailLink.textContent = footerEmail
+                    .getAttribute("href")
+                    .replace("mailto:", "");
 
                 content.append(emailLink);
             }
@@ -417,8 +443,11 @@
         }
 
         // Show selected services and industries in the results summary
-        modal.querySelector("#gain-summary-services").textContent = selectedServices.join(", ");
-        modal.querySelector("#gain-summary-industries").textContent = selectedIndustries.join(", ");
+        modal.querySelector("#gain-summary-services").textContent =
+            selectedServices.join(", ");
+
+        modal.querySelector("#gain-summary-industries").textContent =
+            selectedIndustries.join(", ");
     }
 
     // Next and Back navigation
@@ -435,7 +464,9 @@
         });
 
         backButton.hidden = currentStep === 1;
-        nextButton.hidden = currentStep === 5;
+
+        // Show "Done" on the Results page instead of hiding Next
+        nextButton.textContent = currentStep === 5 ? "Done" : "Next";
 
         // Update progress indicator
         progressItems.forEach((item, index) => {
@@ -456,8 +487,15 @@
     }
 
     nextButton.addEventListener("click", () => {
+        // Done closes the questionnaire
+        if (currentStep === 5) {
+            modal.close();
+            return;
+        }
+
         const current = steps[currentStep - 1];
 
+        // Require an answer before moving forward
         if (!current.querySelector("input:checked")) return;
 
         currentStep++;
@@ -485,109 +523,363 @@
         showStep();
     });
 
+    // Reset when closed using Done, X, or Escape
+    modal.addEventListener("close", () => {
+        modal.querySelectorAll("input").forEach(input => {
+            input.checked = false;
+        });
+
+        modal.querySelector("#gain-results-content").replaceChildren();
+
+        currentStep = 1;
+        showStep();
+    });
+
     // Set initial progress state
     showStep();
+
+    // Inject CSS for console testing
+    // TODO: Move CSS into modal.css before submission
+    const style = document.createElement("style");
+    style.id = "gain-questionnaire-styles";
+
+    style.textContent = `
+        /* Modal container */
+        #gain-questionnaire-modal {
+            width: 600px;
+            max-width: 90vw;
+            max-height: 90vh;
+            box-sizing: border-box;
+            padding: 40px 24px 24px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            background-color: white;
+            color: #333;
+        }
+
+        /* Dark background behind modal */
+        #gain-questionnaire-modal::backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        /* Close X in the top-right */
+        #gain-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 36px;
+            height: 36px;
+            padding: 0;
+
+            background-color: transparent;
+            color: #333;
+            border: none;
+            border-radius: 50%;
+
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #gain-close:hover {
+            background-color: #f1f3f5;
+        }
+
+        /* Progress bar container */
+        #gain-progress {
+            display: flex;
+            gap: 12px;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px;
+        }
+
+        .gain-progress-item {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            min-width: 0;
+        }
+
+        /* Lines connecting circles */
+        .gain-progress-item:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            top: 20px;
+            right: 50%;
+            width: 100%;
+            height: 4px;
+            background: #ddd;
+        }
+
+        /* Blue lines for completed progress */
+        .gain-progress-item.is-active::before,
+        .gain-progress-item.is-complete::before {
+            background: #5579ce;
+        }
+
+        /* Default circles */
+        .gain-progress-circle {
+            width: 40px;
+            height: 40px;
+            box-sizing: border-box;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            position: relative;
+            z-index: 1;
+            background: white;
+            color: #777;
+        }
+
+        /* Active circle */
+        .is-active .gain-progress-circle {
+            background: #5579ce;
+            border-color: #5579ce;
+            color: white;
+        }
+
+        /* Completed circle */
+        .is-complete .gain-progress-circle {
+            background: #5579ce;
+            border-color: #5579ce;
+            color: white;
+        }
+
+        /* Active label */
+        .is-active .gain-progress-label {
+            color: #5579ce;
+            font-weight: bold;
+        }
+
+        /* Completed label */
+        .is-complete .gain-progress-label {
+            color: #5579ce;
+        }
+
+        /* Green checkmark badge on completed steps */
+        .gain-progress-check {
+            display: none;
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            background: #28a745;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        .is-complete .gain-progress-check {
+            display: flex;
+        }
+
+        /* Hide inactive questionnaire steps */
+        #gain-questionnaire-modal [id^="gain-step-"][hidden] {
+            display: none !important;
+        }
+
+        /* Question headings */
+        #gain-questionnaire-modal h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Question 1 and 2 answer containers */
+        #gain-service-options,
+        #gain-industry-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #gain-service-options label,
+        #gain-industry-options label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Checkbox and radio appearance */
+        #gain-questionnaire-modal input[type="checkbox"],
+        #gain-questionnaire-modal input[type="radio"] {
+            position: static !important;
+            width: 18px !important;
+            height: 18px !important;
+            accent-color: #5579ce;
+            flex-shrink: 0;
+        }
+
+        /* Question 3 and 4 answer labels */
+        #gain-step-3 label,
+        #gain-step-4 label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 6px;
+        }
+
+        /* Bottom navigation layout */
+        .gain-modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Ensure hidden navigation buttons stay hidden */
+        #gain-back[hidden],
+        #gain-next[hidden] {
+            display: none !important;
+        }
+
+        /* Shared navigation button padding */
+        #gain-back,
+        #gain-next {
+            padding: 10px 20px;
+        }
+
+        /* Next / Done button */
+        #gain-next {
+            margin-left: auto;
+            background-color: #5579ce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #gain-next:hover {
+            background-color: #3f62b0;
+        }
+
+        /* Back button */
+        #gain-back {
+            background-color: #dce1e6;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #gain-back:hover {
+            background-color: #c5cbd1;
+        }
+
+        /* Results headings */
+        #gain-results-content h3,
+        #gain-results-summary h3 {
+            font-size: 18px;
+        }
+
+        /* Results summary container */
+        #gain-results-summary {
+            margin-top: 24px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        #gain-results-summary h3 {
+            margin-bottom: 12px;
+        }
+
+        #gain-results-summary p {
+            line-height: 1.6;
+            margin-bottom: 6px;
+        }
+
+        /* Edit buttons */
+        #gain-edit-services,
+        #gain-edit-industries {
+            background: transparent;
+            color: #5579ce;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            margin-bottom: 12px;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        #gain-edit-services:hover,
+        #gain-edit-industries:hover {
+            text-decoration: underline;
+        }
+
+        #gain-edit-services:focus-visible,
+        #gain-edit-industries:focus-visible {
+            outline: 2px solid #5579ce;
+        }
+
+        /* Case study list spacing */
+        #gain-results-content li {
+            margin-bottom: 10px;
+        }
+
+        /* Results links */
+        #gain-results-content a {
+            color: #5579ce;
+        }
+
+        #gain-results-content a:hover {
+            text-decoration: underline;
+        }
+
+        /* Case study match badges */
+        #gain-results-content li span {
+            color: #666;
+            font-size: 13px;
+            background-color: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 999px;
+            margin-left: 10px;
+        }
+
+        /* Exact match badge */
+        #gain-results-content .gain-match-exact {
+            background-color: #e6f4ea;
+            color: #217a3c;
+        }
+
+        /* Services / Industries labels */
+        #gain-results-summary strong {
+            color: #333;
+            margin-right: 6px;
+        }
+
+        /* Selected answers */
+        #gain-results-summary p span {
+            color: #555;
+        }
+    `;
+
+    document.head.append(style);
 })();
-
-// TODO: Move CSS into modal.css before submission
-const style = document.createElement("style");
-
-style.textContent = `
-    #gain-progress {
-        display: flex;
-        gap: 12px;
-        list-style: none;
-        padding: 0;
-    }
-
-    .gain-progress-item {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        position: relative;
-    }
-
-    /* Lines connecting circles */
-    .gain-progress-item:not(:first-child)::before {
-        content: "";
-        position: absolute;
-        top: 20px;
-        right: 50%;
-        width: 100%;
-        height: 4px;
-        background: #ddd;
-    }
-
-    /* Blue lines for completed progress */
-    .gain-progress-item.is-active::before,
-    .gain-progress-item.is-complete::before {
-        background: #5579ce;
-    }
-
-    /* Default circles */
-    .gain-progress-circle {
-        width: 40px;
-        height: 40px;
-        border: 2px solid #ddd;
-        border-radius: 50%;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        position: relative;
-        z-index: 1;
-        background: white;
-        color: #777;
-    }
-
-    /* Active circle */
-    .is-active .gain-progress-circle {
-        background: #5579ce;
-        border-color: #5579ce;
-        color: white;
-    }
-
-    /* Completed circle */
-    .is-complete .gain-progress-circle {
-        background: #5579ce;
-        border-color: #5579ce;
-        color: white;
-    }
-
-    /* Active label */
-    .is-active .gain-progress-label {
-        color: #5579ce;
-        font-weight: bold;
-    }
-
-    /* Completed label */
-    .is-complete .gain-progress-label {
-        color: #5579ce;
-    }
-
-    /* Green checkmark badge on completed steps */
-    .gain-progress-check {
-        display: none;
-        position: absolute;
-        top: -7px;
-        right: -7px;
-        width: 20px;
-        height: 20px;
-        align-items: center;
-        justify-content: center;
-        background: #28a745;
-        color: white;
-        border: 2px solid white;
-        border-radius: 50%;
-        box-sizing: border-box;
-    }
-
-    .is-complete .gain-progress-check {
-        display: flex;
-    }
-`;
-
-document.head.append(style);

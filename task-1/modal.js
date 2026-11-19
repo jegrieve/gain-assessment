@@ -10,7 +10,10 @@
     section.innerHTML = `
         <h2>Find the right solution for you</h2>
         <p>Answer a few questions to discover how we can help.</p>
-        <button type="button">Get Started</button>
+
+        <div class="gain-button-wrap">
+            <button type="button"><span>Get Started</span></button>
+        </div>
     `;
 
     hero.parentElement.after(section);
@@ -266,6 +269,9 @@
         articlesHeading.textContent = "Recommended articles";
         content.append(articlesHeading);
 
+        // Display articles as a list, just like case studies
+        const list = document.createElement("ul");
+
         articles.forEach(heading => {
             // Find the article link within its surrounding card
             let link = heading.querySelector("a[href]");
@@ -282,11 +288,13 @@
             articleLink.href = link.href;
             articleLink.textContent = heading.textContent.trim();
 
-            const paragraph = document.createElement("p");
-            paragraph.append(articleLink);
+            const item = document.createElement("li");
+            item.append(articleLink);
 
-            content.append(paragraph);
+            list.append(item);
         });
+
+        content.append(list);
     }
 
     // Get matching case studies from the Work slider
@@ -414,6 +422,18 @@
                     .getAttribute("href")
                     .replace("mailto:", "");
 
+                emailLink.classList.add("gain-email-link");
+
+                emailLink.insertAdjacentHTML("afterbegin", `
+                    <svg width="18" height="18" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <rect width="20" height="16" x="2" y="4" rx="2"/>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
+                `);
+
                 content.append(emailLink);
             }
         }
@@ -458,6 +478,17 @@
 
     let currentStep = 1;
 
+    // Enable Next only when the current question has an answer
+    function updateNextButtonState() {
+        if (currentStep === 5) {
+            nextButton.disabled = false;
+            return;
+        }
+
+        const current = steps[currentStep - 1];
+        nextButton.disabled = !current.querySelector("input:checked");
+    }
+
     function showStep() {
         steps.forEach((step, index) => {
             step.hidden = index !== currentStep - 1;
@@ -484,7 +515,17 @@
                 item.removeAttribute("aria-current");
             }
         });
+
+        // Refresh Next's disabled state when navigating
+        updateNextButtonState();
     }
+
+    // Update Next immediately when an answer changes
+    modal.addEventListener("change", event => {
+        if (event.target.matches('input[type="checkbox"], input[type="radio"]')) {
+            updateNextButtonState();
+        }
+    });
 
     nextButton.addEventListener("click", () => {
         // Done closes the questionnaire
@@ -542,7 +583,7 @@
     // TODO: Move CSS into modal.css before submission
     const style = document.createElement("style");
     style.id = "gain-questionnaire-styles";
-
+    
     style.textContent = `
         /* Modal container */
         #gain-questionnaire-modal {
@@ -558,41 +599,48 @@
             background-color: white;
             color: #333;
         }
-
+    
         /* Dark background behind modal */
         #gain-questionnaire-modal::backdrop {
             background-color: rgba(0, 0, 0, 0.6);
         }
-
+    
+        /* Use the website's font */
+        #gain-questionnaire-modal,
+        #gain-questionnaire-section {
+            font-family: inherit;
+        }
+    
+        #gain-questionnaire-modal button,
+        #gain-questionnaire-section .gain-button-wrap > button {
+            font-family: inherit;
+        }
+    
         /* Close X in the top-right */
         #gain-close {
             position: absolute;
             top: 12px;
             right: 12px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             width: 36px;
             height: 36px;
             padding: 0;
-
             background-color: transparent;
             color: #333;
             border: none;
             border-radius: 50%;
-
             font-size: 28px;
             line-height: 1;
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-
+    
         #gain-close:hover {
             background-color: #f1f3f5;
         }
-
+    
         /* Progress bar container */
         #gain-progress {
             display: flex;
@@ -601,7 +649,7 @@
             padding: 0;
             margin: 0 0 32px;
         }
-
+    
         .gain-progress-item {
             display: flex;
             flex: 1;
@@ -611,7 +659,7 @@
             position: relative;
             min-width: 0;
         }
-
+    
         /* Lines connecting circles */
         .gain-progress-item:not(:first-child)::before {
             content: "";
@@ -622,13 +670,13 @@
             height: 4px;
             background: #ddd;
         }
-
+    
         /* Blue lines for completed progress */
         .gain-progress-item.is-active::before,
         .gain-progress-item.is-complete::before {
             background: #5579ce;
         }
-
+    
         /* Default circles */
         .gain-progress-circle {
             width: 40px;
@@ -636,43 +684,35 @@
             box-sizing: border-box;
             border: 2px solid #ddd;
             border-radius: 50%;
-
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-
             position: relative;
             z-index: 1;
             background: white;
             color: #777;
         }
-
-        /* Active circle */
-        .is-active .gain-progress-circle {
-            background: #5579ce;
-            border-color: #5579ce;
-            color: white;
-        }
-
-        /* Completed circle */
+    
+        /* Active and completed circles */
+        .is-active .gain-progress-circle,
         .is-complete .gain-progress-circle {
             background: #5579ce;
             border-color: #5579ce;
             color: white;
         }
-
+    
         /* Active label */
         .is-active .gain-progress-label {
             color: #5579ce;
             font-weight: bold;
         }
-
+    
         /* Completed label */
         .is-complete .gain-progress-label {
             color: #5579ce;
         }
-
+    
         /* Green checkmark badge on completed steps */
         .gain-progress-check {
             display: none;
@@ -689,22 +729,22 @@
             border-radius: 50%;
             box-sizing: border-box;
         }
-
+    
         .is-complete .gain-progress-check {
             display: flex;
         }
-
+    
         /* Hide inactive questionnaire steps */
         #gain-questionnaire-modal [id^="gain-step-"][hidden] {
             display: none !important;
         }
-
+    
         /* Question headings */
         #gain-questionnaire-modal h2 {
             font-size: 24px;
             margin-bottom: 20px;
         }
-
+    
         /* Question 1 and 2 answer containers */
         #gain-service-options,
         #gain-industry-options {
@@ -712,7 +752,7 @@
             flex-direction: column;
             gap: 6px;
         }
-
+    
         #gain-service-options label,
         #gain-industry-options label {
             display: flex;
@@ -722,7 +762,7 @@
             font-size: 16px;
             cursor: pointer;
         }
-
+    
         /* Checkbox and radio appearance */
         #gain-questionnaire-modal input[type="checkbox"],
         #gain-questionnaire-modal input[type="radio"] {
@@ -732,7 +772,7 @@
             accent-color: #5579ce;
             flex-shrink: 0;
         }
-
+    
         /* Question 3 and 4 answer labels */
         #gain-step-3 label,
         #gain-step-4 label {
@@ -744,7 +784,7 @@
             cursor: pointer;
             margin-bottom: 6px;
         }
-
+    
         /* Bottom navigation layout */
         .gain-modal-actions {
             display: flex;
@@ -752,19 +792,19 @@
             gap: 12px;
             margin-top: 24px;
         }
-
+    
         /* Ensure hidden navigation buttons stay hidden */
         #gain-back[hidden],
         #gain-next[hidden] {
             display: none !important;
         }
-
+    
         /* Shared navigation button padding */
         #gain-back,
         #gain-next {
             padding: 10px 20px;
         }
-
+    
         /* Next / Done button */
         #gain-next {
             margin-left: auto;
@@ -775,11 +815,19 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-
+    
         #gain-next:hover {
             background-color: #3f62b0;
         }
-
+    
+        /* Disabled Next button */
+        #gain-next:disabled,
+        #gain-next:disabled:hover {
+            background-color: #dce1e6;
+            color: #777;
+            cursor: not-allowed;
+        }
+    
         /* Back button */
         #gain-back {
             background-color: #dce1e6;
@@ -789,33 +837,33 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-
+    
         #gain-back:hover {
             background-color: #c5cbd1;
         }
-
+    
         /* Results headings */
         #gain-results-content h3,
         #gain-results-summary h3 {
             font-size: 18px;
         }
-
+    
         /* Results summary container */
         #gain-results-summary {
             margin-top: 24px;
             border-top: 1px solid #ddd;
             padding-top: 20px;
         }
-
+    
         #gain-results-summary h3 {
             margin-bottom: 12px;
         }
-
+    
         #gain-results-summary p {
             line-height: 1.6;
             margin-bottom: 6px;
         }
-
+    
         /* Edit buttons */
         #gain-edit-services,
         #gain-edit-industries {
@@ -828,31 +876,31 @@
             font-size: 14px;
             margin-top: 4px;
         }
-
+    
         #gain-edit-services:hover,
         #gain-edit-industries:hover {
             text-decoration: underline;
         }
-
+    
         #gain-edit-services:focus-visible,
         #gain-edit-industries:focus-visible {
             outline: 2px solid #5579ce;
         }
-
-        /* Case study list spacing */
+    
+        /* Results list spacing */
         #gain-results-content li {
             margin-bottom: 10px;
         }
-
+    
         /* Results links */
         #gain-results-content a {
             color: #5579ce;
         }
-
+    
         #gain-results-content a:hover {
             text-decoration: underline;
         }
-
+    
         /* Case study match badges */
         #gain-results-content li span {
             color: #666;
@@ -861,25 +909,229 @@
             padding: 4px 8px;
             border-radius: 999px;
             margin-left: 10px;
+            display: inline-block;
         }
-
+    
         /* Exact match badge */
         #gain-results-content .gain-match-exact {
             background-color: #e6f4ea;
             color: #217a3c;
         }
-
+    
         /* Services / Industries labels */
         #gain-results-summary strong {
             color: #333;
             margin-right: 6px;
         }
-
+    
         /* Selected answers */
         #gain-results-summary p span {
             color: #555;
         }
+    
+        /* Email icon and link */
+        #gain-results-content .gain-email-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+        /* Questionnaire section below hero */
+        #gain-questionnaire-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+            padding: 80px 24px;
+        }
+    
+        #gain-questionnaire-section h2 {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+            color: #222;
+        }
+    
+        #gain-questionnaire-section p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #555;
+            margin: 0;
+            max-width: 500px;
+        }
+    
+        /* Button wrapper and shared shadow color */
+        #gain-questionnaire-section .gain-button-wrap {
+            position: relative;
+            display: inline-flex;
+            isolation: isolate;
+            --pixel-shadow: #9e9e9e;
+        }
+    
+        /* Two layers form the stepped bottom shadow */
+        #gain-questionnaire-section .gain-button-wrap::before,
+        #gain-questionnaire-section .gain-button-wrap::after {
+            content: "";
+            position: absolute;
+            background: var(--pixel-shadow);
+            z-index: -1;
+            pointer-events: none;
+        }
+    
+        /* Upper shadow — full button width */
+        #gain-questionnaire-section .gain-button-wrap::before {
+            left: 0;
+            right: 0;
+            bottom: -3px;
+            height: 3px;
+        }
+    
+        /* Lower shadow — stepped inward at both ends */
+        #gain-questionnaire-section .gain-button-wrap::after {
+            left: 5px;
+            right: 5px;
+            bottom: -7px;
+            height: 4px;
+        }
+    
+        /* Hide bottom shadow when pressed or disabled */
+        #gain-questionnaire-section .gain-button-wrap:has(> button:active)::before,
+        #gain-questionnaire-section .gain-button-wrap:has(> button:active)::after,
+        #gain-questionnaire-section .gain-button-wrap:has(> button:disabled)::before,
+        #gain-questionnaire-section .gain-button-wrap:has(> button:disabled)::after {
+            display: none;
+        }
+    
+        /* Get Started — Regular */
+        #gain-questionnaire-section .gain-button-wrap > button {
+            position: relative;
+            --corner-border: #222120;
+    
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+    
+            background-color: #517636;
+            color: #ffffff;
+            border: 4px solid #222120;
+            border-radius: 0;
+            cursor: pointer;
+    
+            /* Light top edge, dark left/right/bottom edges */
+            box-shadow:
+                inset 0 4px 0 #699645,
+                inset 4px 0 0 #3a5627,
+                inset -4px 0 0 #3a5627,
+                inset 0 -4px 0 #3a5627;
+        }
+    
+        /* Hover — darker green, same edge shading */
+        #gain-questionnaire-section .gain-button-wrap > button:hover:not(:disabled) {
+            background-color: #44632d;
+        }
+    
+        /* Focus — hover green with blue outer outline */
+        #gain-questionnaire-section .gain-button-wrap > button:focus-visible {
+            background-color: #44632d;
+            outline: 2px solid #2b46b7;
+            outline-offset: 2px;
+        }
+    
+        /* Pressed — solid dark green, no inner shading */
+        #gain-questionnaire-section .gain-button-wrap > button:active:not(:disabled) {
+            background-color: #3a5627;
+            box-shadow: none;
+        }
+    
+        /* Disabled — light gray with gray text and border */
+        #gain-questionnaire-section .gain-button-wrap > button:disabled {
+            background-color: #e7e1de;
+            color: #9e9693;
+            border-color: #9e9693;
+            --corner-border: #9e9693;
+            box-shadow: none;
+            text-shadow: none;
+            cursor: not-allowed;
+        }
+    
+        /*
+         * Four stepped corners.
+         * Each square covers a corner of the original border.
+         * Two dark edges create the inward step.
+         */
+        #gain-questionnaire-section .gain-button-wrap > button::before,
+        #gain-questionnaire-section .gain-button-wrap > button::after,
+        #gain-questionnaire-section .gain-button-wrap > button > span::before,
+        #gain-questionnaire-section .gain-button-wrap > button > span::after {
+            content: "";
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            box-sizing: content-box;
+            background: white;
+            pointer-events: none;
+        }
+    
+        /* Top-left corner */
+        #gain-questionnaire-section .gain-button-wrap > button::before {
+            top: -4px;
+            left: -4px;
+            border-right: 4px solid var(--corner-border);
+            border-bottom: 4px solid var(--corner-border);
+        }
+    
+        /* Top-right corner */
+        #gain-questionnaire-section .gain-button-wrap > button::after {
+            top: -4px;
+            right: -4px;
+            border-left: 4px solid var(--corner-border);
+            border-bottom: 4px solid var(--corner-border);
+        }
+    
+        /* Bottom-left corner */
+        #gain-questionnaire-section .gain-button-wrap > button > span::before {
+            bottom: -4px;
+            left: -4px;
+            border-right: 4px solid var(--corner-border);
+            border-top: 4px solid var(--corner-border);
+        }
+    
+        /* Bottom-right corner */
+        #gain-questionnaire-section .gain-button-wrap > button > span::after {
+            bottom: -4px;
+            right: -4px;
+            border-left: 4px solid var(--corner-border);
+            border-top: 4px solid var(--corner-border);
+        }
+    
+        /*
+         * Bottom corner shadow seam fix.
+         * Fill each bottom corner with the same opaque color
+         * as the outer shadow, avoiding translucent overlaps.
+         */
+        #gain-questionnaire-section .gain-button-wrap > button > span::before,
+        #gain-questionnaire-section .gain-button-wrap > button > span::after {
+            height: 5px;
+            bottom: -4px;
+            background: var(--pixel-shadow);
+            box-shadow: none;
+        }
+    
+        /* Restore white bottom corners when pressed or disabled */
+        #gain-questionnaire-section .gain-button-wrap > button:active > span::before,
+        #gain-questionnaire-section .gain-button-wrap > button:active > span::after,
+        #gain-questionnaire-section .gain-button-wrap > button:disabled > span::before,
+        #gain-questionnaire-section .gain-button-wrap > button:disabled > span::after {
+            background: white;
+            box-shadow: none;
+        }
     `;
+
 
     document.head.append(style);
 })();

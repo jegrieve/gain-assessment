@@ -1,5 +1,78 @@
 
 (() => {
+    let initialized = false;
+    let observer = null;
+
+    // Wait until the homepage content needed by the drawer is available
+    function sourcesReady() {
+        if (!document.body) return false;
+
+        const workCards = document.querySelectorAll(
+            ".content-slider .content-card--work"
+        );
+
+        const serviceItems = document.querySelectorAll(
+            ".site-navigation__submenu-link-text"
+        );
+
+        if (!workCards.length || !serviceItems.length) return false;
+
+        const cardsReady = Array.from(workCards).every((card) =>
+            card.querySelector(".content-card__title") &&
+            card.querySelector(".content-card__link") &&
+            card.querySelector(".content-card__image") &&
+            card.querySelectorAll(".content-tags li").length >= 2
+        );
+
+        const servicesReady = Array.from(serviceItems).some((item) =>
+            item.querySelector(".site-navigation__submenu-link-title") &&
+            item.querySelector(".site-navigation__submenu-link-description")
+        );
+
+        return cardsReady && servicesReady;
+    }
+
+    function tryInit() {
+        if (initialized || document.querySelector("#gain-footer-drawer")) {
+            observer?.disconnect();
+            return;
+        }
+
+        if (!sourcesReady()) return;
+
+        initialized = true;
+        observer?.disconnect();
+        observer = null;
+
+        initDrawer();
+    }
+
+    function start() {
+        tryInit();
+
+        if (initialized || document.querySelector("#gain-footer-drawer")) {
+            return;
+        }
+
+        // Handle elements inserted after the initial HTML is parsed
+        observer = new MutationObserver(tryInit);
+
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Support execution before or after the DOM is ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, {
+            once: true
+        });
+    } else {
+        start();
+    }
+
+    function initDrawer() {
     // Prevent duplicate drawers
     if (document.querySelector("#gain-footer-drawer")) return;
 
@@ -102,7 +175,6 @@
     const overlay = document.createElement("div");
     overlay.id = "gain-drawer-overlay";
     overlay.setAttribute("aria-hidden", "true");
-
     document.body.append(overlay);
 
     // Read case studies directly from the homepage Work slider
@@ -214,7 +286,7 @@
         const spaceAbove = tagRect.top;
         const spaceBelow = window.innerHeight - tagRect.bottom;
 
-        // Prefer above, unless below has more suitable space
+        // Prefer above unless below has more suitable space
         const showAbove =
             spaceAbove >= tooltipHeight + gap + padding ||
             (
@@ -495,6 +567,7 @@
         if (!isDragging && Math.abs(distance) > 5) {
             isDragging = true;
             wasDragged = true;
+
             content.classList.add("is-dragging");
             content.setPointerCapture(event.pointerId);
         }
@@ -668,7 +741,8 @@
             margin-left: 4px;
         }
 
-        #gain-footer-drawer .gain-drawer-toggle:hover {
+        /* Hover effect only on the chevron, not the label */
+        #gain-footer-drawer .gain-drawer-chevron:hover {
             background: #f3f4f6;
         }
 
@@ -749,7 +823,7 @@
             overflow-x: auto;
             overflow-y: hidden;
             pointer-events: auto;
-
+            scroll-padding-inline: 24px;
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
             overscroll-behavior-x: contain;
@@ -945,4 +1019,5 @@
     `;
 
     document.head.append(style);
+    }
 })();

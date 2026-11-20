@@ -426,6 +426,7 @@
 
     // Lock pagination during animated arrow navigation
     let isNavigating = false;
+    let navigationTimeout = null;
 
     // Determine how many cards fit on each page
     function getCardsPerPage() {
@@ -479,6 +480,15 @@
             behavior: "smooth"
         });
 
+        // Fallback if scrollend does not fire - Does not fire in certain browsers
+        clearTimeout(navigationTimeout);
+
+        if (isNavigating) {
+            navigationTimeout = setTimeout(() => {
+                isNavigating = false;
+            }, 1000);
+        }
+
         updateNavigation();
     }
 
@@ -526,6 +536,7 @@
 
     // Unlock pagination when smooth scrolling finishes
     content.addEventListener("scrollend", () => {
+        clearTimeout(navigationTimeout);
         isNavigating = false;
     });
 

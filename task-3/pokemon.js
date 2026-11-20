@@ -4,6 +4,7 @@
     let observer = null;
     let requestId = 0;
     let selectedType = "";
+    const pageCache = new Map();
 
     // Get the current page number from the URL
     function getCurrentPage() {
@@ -79,11 +80,22 @@
     async function renderPokemon(container) {
         const page = getCurrentPage();
         const currentRequest = ++requestId;
+        const cachedPokemon = pageCache.get(page);
 
-        showLoading(container);
+        // Skip loading skeletons when revisiting a cached page
+        if (!cachedPokemon) {
+            showLoading(container);
+        } else {
+            container.setAttribute("aria-busy", "true");
+        }
 
         try {
-            const pokemon = await fetchPagePokemon(page);
+            const pokemon = cachedPokemon || await fetchPagePokemon(page);
+
+            // Cache successfully fetched Pokémon for this page
+            if (!cachedPokemon) {
+                pageCache.set(page, pokemon);
+            }
 
             // Ignore old responses if the user changes pages quickly
             if (currentRequest !== requestId) return;

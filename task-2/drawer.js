@@ -130,8 +130,95 @@
     const tab = drawer.querySelector(".gain-drawer-tab");
     const content = drawer.querySelector("#gain-drawer-content");
 
+    // Track the currently visible tooltip
+    let activeTag = null;
+    let activeTooltip = null;
+
+    // Hide the current tooltip
+    function hideTooltip() {
+        if (!activeTooltip) return;
+
+        activeTooltip.classList.remove("is-visible", "is-below");
+        activeTag.setAttribute("aria-expanded", "false");
+
+        activeTag = null;
+        activeTooltip = null;
+    }
+
+    // Position the tooltip without overflowing the viewport
+    function showTooltip(tag, tooltip) {
+        hideTooltip();
+
+        activeTag = tag;
+        activeTooltip = tooltip;
+
+        tooltip.classList.add("is-visible");
+        tag.setAttribute("aria-expanded", "true");
+
+        const tagRect = tag.getBoundingClientRect();
+        const drawerRect = drawer.getBoundingClientRect();
+
+        const tooltipWidth = tooltip.offsetWidth;
+        const tooltipHeight = tooltip.offsetHeight;
+
+        const padding = 12;
+        const gap = 12;
+
+        // Keep the tooltip within the horizontal viewport boundaries
+        const left = Math.max(
+            padding,
+            Math.min(
+                tagRect.left,
+                window.innerWidth - tooltipWidth - padding
+            )
+        );
+
+        const spaceAbove = tagRect.top;
+        const spaceBelow = window.innerHeight - tagRect.bottom;
+
+        // Prefer above, unless there is more suitable space below
+        const showAbove =
+            spaceAbove >= tooltipHeight + gap + padding ||
+            (
+                spaceBelow < tooltipHeight + gap + padding &&
+                spaceAbove >= spaceBelow
+            );
+
+        const desiredTop = showAbove
+            ? tagRect.top - tooltipHeight - gap
+            : tagRect.bottom + gap;
+
+        const top = Math.max(
+            padding,
+            Math.min(
+                desiredTop,
+                window.innerHeight - tooltipHeight - padding
+            )
+        );
+
+        tooltip.classList.toggle("is-below", !showAbove);
+
+        // Position relative to the drawer
+        tooltip.style.left = `${left - drawerRect.left}px`;
+        tooltip.style.top = `${top - drawerRect.top}px`;
+
+        // Keep the triangle pointing toward the industry tag
+        const arrowLeft = Math.max(
+            10,
+            Math.min(
+                tagRect.left + tagRect.width / 2 - left - 7,
+                tooltipWidth - 24
+            )
+        );
+
+        tooltip.style.setProperty(
+            "--arrow-left",
+            `${arrowLeft}px`
+        );
+    }
+
     // Render the case studies inside the drawer
-    caseStudies.forEach((study) => {
+    caseStudies.forEach((study, index) => {
         const card = document.createElement("article");
         card.className = "gain-drawer-card";
 
@@ -144,7 +231,7 @@
         const title = document.createElement("h3");
         title.textContent = study.title;
 
-        // Create the industry tag and its tooltip
+        // Create the industry tag and tooltip
         const tagWrapper = document.createElement("div");
         tagWrapper.className = "gain-drawer-tag-wrapper";
 
@@ -156,7 +243,10 @@
 
         const tooltip = document.createElement("span");
         tooltip.className = "gain-drawer-tooltip";
+        tooltip.id = `gain-drawer-tooltip-${index + 1}`;
         tooltip.setAttribute("role", "tooltip");
+
+        tag.setAttribute("aria-describedby", tooltip.id);
 
         const serviceText = document.createElement("span");
         serviceText.textContent = `Service: ${study.service}`;
@@ -165,12 +255,44 @@
         industryText.textContent = `Industry: ${study.industry}`;
 
         tooltip.append(serviceText, industryText);
-        tagWrapper.append(tag, tooltip);
 
-        // Allow tapping the tag to toggle the tooltip on mobile
+        // Keep the tooltip outside the scrolling carousel
+        tagWrapper.append(tag);
+        drawer.append(tooltip);
+
+        // Desktop: show on hover and hide when the mouse leaves
+        tag.addEventListener("mouseenter", () => {
+            if (window.matchMedia("(hover: hover)").matches) {
+                showTooltip(tag, tooltip);
+            }
+        });
+
+        tag.addEventListener("mouseleave", () => {
+            if (window.matchMedia("(hover: hover)").matches) {
+                if (activeTag === tag) hideTooltip();
+            }
+        });
+
+        // Keyboard: show on focus and hide on blur
+        tag.addEventListener("focus", () => {
+            if (tag.matches(":focus-visible")) {
+                showTooltip(tag, tooltip);
+            }
+        });
+
+        tag.addEventListener("blur", () => {
+            if (activeTag === tag) hideTooltip();
+        });
+
+        // Touch: tap to toggle the tooltip
         tag.addEventListener("click", () => {
-            const isOpen = tagWrapper.classList.toggle("is-active");
-            tag.setAttribute("aria-expanded", String(isOpen));
+            if (window.matchMedia("(hover: hover)").matches) return;
+
+            if (activeTag === tag) {
+                hideTooltip();
+            } else {
+                showTooltip(tag, tooltip);
+            }
         });
 
         const description = document.createElement("p");
@@ -263,6 +385,9 @@
         updateNavigation();
     }, { passive: true });
 
+    // Close the tooltip when navigating between cards
+    content.addEventListener("scroll", hideTooltip, { passive: true });
+
     // Allow desktop users to drag the slider with their mouse
     let startX = 0;
     let startScrollLeft = 0;
@@ -318,8 +443,23 @@
         }
     }, true);
 
+    // Hide tooltips when interacting elsewhere
+    document.addEventListener("pointerdown", (event) => {
+        if (!event.target.closest("#gain-footer-drawer .gain-drawer-card-tag")) {
+            hideTooltip();
+        }
+    });
+
+    // Allow keyboard users to dismiss tooltips
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            hideTooltip();
+        }
+    });
+
     // Reset pagination when the viewport changes
     window.addEventListener("resize", () => {
+        hideTooltip();
         goToPage(0);
     });
 
@@ -333,6 +473,8 @@
 
     // Update drawer and overlay visibility
     function setDrawerOpen(isOpen) {
+        if (!isOpen) hideTooltip();
+
         drawer.classList.toggle("is-open", isOpen);
         overlay.classList.toggle("is-visible", isOpen);
 
@@ -477,7 +619,7 @@
             line-height: 1.3;
         }
 
-        /* Container for the industry tag and tooltip */
+        /* Container for the industry tag */
         #gain-footer-drawer .gain-drawer-tag-wrapper {
             position: relative;
             align-self: stretch;
@@ -495,16 +637,14 @@
             font-size: 12px;
         }
 
-        /* Tooltip with case-study service and industry */
+        /* Floating tooltip outside the scrolling carousel */
         #gain-footer-drawer .gain-drawer-tooltip {
             position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            z-index: 5;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            width: 100%;
+            width: min(220px, calc(100vw - 24px));
             padding: 12px;
             box-sizing: border-box;
             border-radius: 6px;
@@ -512,24 +652,39 @@
             color: #fff;
             font-size: 12px;
             line-height: 1.5;
+            overflow-wrap: anywhere;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            transform: translateY(-4px);
             transition: opacity 150ms ease,
-                        transform 150ms ease,
                         visibility 150ms ease;
         }
 
-        /* Show tooltip on hover, keyboard focus, or tap */
-        #gain-footer-drawer .gain-drawer-tag-wrapper:hover .gain-drawer-tooltip,
-        #gain-footer-drawer .gain-drawer-card-tag:focus-visible + .gain-drawer-tooltip,
-        #gain-footer-drawer .gain-drawer-tag-wrapper.is-active .gain-drawer-tooltip {
+        /* Triangle pointing down toward the tag */
+        #gain-footer-drawer .gain-drawer-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: var(--arrow-left, 20px);
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 7px solid #222;
+        }
+
+        /* Flip the triangle when the tooltip appears below */
+        #gain-footer-drawer .gain-drawer-tooltip.is-below::after {
+            top: auto;
+            bottom: 100%;
+            border-top: none;
+            border-bottom: 7px solid #222;
+        }
+
+        /* Show the positioned tooltip */
+        #gain-footer-drawer .gain-drawer-tooltip.is-visible {
             opacity: 1;
             visibility: visible;
-            transform: translateY(0);
         }
 
         #gain-footer-drawer .gain-drawer-card p {
@@ -538,11 +693,48 @@
             line-height: 1.4;
         }
 
+        /* Case-study link styled as a button */
         #gain-footer-drawer .gain-drawer-card a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: flex-start;
             margin-top: auto;
+            min-height: 42px;
+            padding: 10px 18px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            background: #2b46b7;
+            color: #fff;
             font-size: 14px;
             font-weight: 600;
-            color: #2b46b7;
+            line-height: 1.3;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 200ms ease,
+                        transform 200ms ease,
+                        box-shadow 200ms ease;
+        }
+
+        /* Hover effect */
+        #gain-footer-drawer .gain-drawer-card a:hover {
+            background: #1c318a;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Pressed effect */
+        #gain-footer-drawer .gain-drawer-card a:active {
+            background: #15266e;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Keyboard focus */
+        #gain-footer-drawer .gain-drawer-card a:focus-visible {
+            outline: 3px solid #2b46b7;
+            outline-offset: 3px;
         }
 
         /* Slider pagination and navigation */
@@ -589,7 +781,8 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            transition: opacity 350ms ease, visibility 350ms ease;
+            transition: opacity 350ms ease,
+                        visibility 350ms ease;
         }
 
         /* Show overlay when drawer opens */

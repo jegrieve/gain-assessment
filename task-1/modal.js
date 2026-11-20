@@ -1,5 +1,72 @@
 
 (() => {
+    let initialized = false;
+    let observer = null;
+
+    // Wait until the homepage elements used by the questionnaire exist
+    function sourcesReady() {
+        if (!document.body) return false;
+
+        const hero = document.querySelector("#main-content h1");
+        const services = document.querySelectorAll(
+            ".site-navigation__submenu-link-title"
+        );
+
+        const sectorsHeading = Array.from(
+            document.querySelectorAll("#main-content p")
+        ).find(p => p.textContent.trim() === "Our Sectors");
+
+        const sectorsContainer = sectorsHeading?.closest(".wp-block-columns");
+
+        return Boolean(
+            hero?.parentElement &&
+            services.length &&
+            Array.from(services).every(service => service.textContent.trim()) &&
+            sectorsContainer?.querySelector(".wp-block-button__link")
+        );
+    }
+
+    function tryInit() {
+        if (initialized || document.querySelector("#gain-questionnaire-section")) {
+            observer?.disconnect();
+            return;
+        }
+
+        if (!sourcesReady()) return;
+
+        initialized = true;
+        observer?.disconnect();
+        observer = null;
+
+        initQuestionnaire();
+    }
+
+    function start() {
+        tryInit();
+
+        if (initialized || document.querySelector("#gain-questionnaire-section")) {
+            return;
+        }
+
+        // Handle elements inserted after the initial HTML is parsed
+        observer = new MutationObserver(tryInit);
+
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Support execution before or after the DOM is ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, {
+            once: true
+        });
+    } else {
+        start();
+    }
+
+    function initQuestionnaire() {
     // Add section under hero
     const hero = document.querySelector("#main-content h1");
 
@@ -1180,4 +1247,5 @@
     `;
 
     document.head.append(style);
+    }
 })();

@@ -864,6 +864,18 @@
             font-size: 16px;
             line-height: 1.3;
         }
+        /* Keep card titles aligned across desktop sizes */
+        @media (min-width: 1024px) {
+            #gain-footer-drawer .gain-drawer-card h3 {
+                min-height: 3.9em;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            #gain-footer-drawer .gain-drawer-card h3 {
+                min-height: 2.6em;
+            }
+        }
 
         /* Container for the industry tag */
         #gain-footer-drawer .gain-drawer-tag-wrapper {

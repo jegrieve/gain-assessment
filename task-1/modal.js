@@ -1,3 +1,4 @@
+
 (() => {
     // Add section under hero
     const hero = document.querySelector("#main-content h1");
@@ -583,7 +584,7 @@
     // TODO: Move CSS into modal.css before submission
     const style = document.createElement("style");
     style.id = "gain-questionnaire-styles";
-    
+
     style.textContent = `
         /* Modal container */
         #gain-questionnaire-modal {
@@ -599,23 +600,23 @@
             background-color: white;
             color: #333;
         }
-    
+
         /* Dark background behind modal */
         #gain-questionnaire-modal::backdrop {
             background-color: rgba(0, 0, 0, 0.6);
         }
-    
+
         /* Use the website's font */
         #gain-questionnaire-modal,
         #gain-questionnaire-section {
             font-family: inherit;
         }
-    
+
         #gain-questionnaire-modal button,
         #gain-questionnaire-section .gain-button-wrap > button {
             font-family: inherit;
         }
-    
+
         /* Close X in the top-right */
         #gain-close {
             position: absolute;
@@ -636,11 +637,11 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-    
+
         #gain-close:hover {
             background-color: #f1f3f5;
         }
-    
+
         /* Progress bar container */
         #gain-progress {
             display: flex;
@@ -649,7 +650,7 @@
             padding: 0;
             margin: 0 0 32px;
         }
-    
+
         .gain-progress-item {
             display: flex;
             flex: 1;
@@ -659,7 +660,7 @@
             position: relative;
             min-width: 0;
         }
-    
+
         /* Lines connecting circles */
         .gain-progress-item:not(:first-child)::before {
             content: "";
@@ -670,13 +671,13 @@
             height: 4px;
             background: #ddd;
         }
-    
+
         /* Blue lines for completed progress */
         .gain-progress-item.is-active::before,
         .gain-progress-item.is-complete::before {
             background: #5579ce;
         }
-    
+
         /* Default circles */
         .gain-progress-circle {
             width: 40px;
@@ -693,7 +694,7 @@
             background: white;
             color: #777;
         }
-    
+
         /* Active and completed circles */
         .is-active .gain-progress-circle,
         .is-complete .gain-progress-circle {
@@ -701,18 +702,18 @@
             border-color: #5579ce;
             color: white;
         }
-    
+
         /* Active label */
         .is-active .gain-progress-label {
             color: #5579ce;
             font-weight: bold;
         }
-    
+
         /* Completed label */
         .is-complete .gain-progress-label {
             color: #5579ce;
         }
-    
+
         /* Green checkmark badge on completed steps */
         .gain-progress-check {
             display: none;
@@ -729,22 +730,22 @@
             border-radius: 50%;
             box-sizing: border-box;
         }
-    
+
         .is-complete .gain-progress-check {
             display: flex;
         }
-    
+
         /* Hide inactive questionnaire steps */
         #gain-questionnaire-modal [id^="gain-step-"][hidden] {
             display: none !important;
         }
-    
+
         /* Question headings */
         #gain-questionnaire-modal h2 {
             font-size: 24px;
             margin-bottom: 20px;
         }
-    
+
         /* Question 1 and 2 answer containers */
         #gain-service-options,
         #gain-industry-options {
@@ -752,7 +753,17 @@
             flex-direction: column;
             gap: 6px;
         }
-    
+
+        /*
+         * Industry options: display answers in two columns instead of one.
+         * Keeps the 13 industry choices compact and reduces vertical scrolling.
+         */
+        #gain-industry-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px 12px;
+        }
+
         #gain-service-options label,
         #gain-industry-options label {
             display: flex;
@@ -762,7 +773,7 @@
             font-size: 16px;
             cursor: pointer;
         }
-    
+
         /* Checkbox and radio appearance */
         #gain-questionnaire-modal input[type="checkbox"],
         #gain-questionnaire-modal input[type="radio"] {
@@ -772,7 +783,7 @@
             accent-color: #5579ce;
             flex-shrink: 0;
         }
-    
+
         /* Question 3 and 4 answer labels */
         #gain-step-3 label,
         #gain-step-4 label {
@@ -784,7 +795,7 @@
             cursor: pointer;
             margin-bottom: 6px;
         }
-    
+
         /* Bottom navigation layout */
         .gain-modal-actions {
             display: flex;
@@ -792,19 +803,19 @@
             gap: 12px;
             margin-top: 24px;
         }
-    
+
         /* Ensure hidden navigation buttons stay hidden */
         #gain-back[hidden],
         #gain-next[hidden] {
             display: none !important;
         }
-    
+
         /* Shared navigation button padding */
         #gain-back,
         #gain-next {
             padding: 10px 20px;
         }
-    
+
         /* Next / Done button */
         #gain-next {
             margin-left: auto;
@@ -815,11 +826,11 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-    
+
         #gain-next:hover {
             background-color: #3f62b0;
         }
-    
+
         /* Disabled Next button */
         #gain-next:disabled,
         #gain-next:disabled:hover {
@@ -827,7 +838,7 @@
             color: #777;
             cursor: not-allowed;
         }
-    
+
         /* Back button */
         #gain-back {
             background-color: #dce1e6;
@@ -837,33 +848,33 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-    
+
         #gain-back:hover {
             background-color: #c5cbd1;
         }
-    
+
         /* Results headings */
         #gain-results-content h3,
         #gain-results-summary h3 {
             font-size: 18px;
         }
-    
+
         /* Results summary container */
         #gain-results-summary {
-            margin-top: 24px;
+            margin-top: 12px;
             border-top: 1px solid #ddd;
-            padding-top: 20px;
+            padding-top: 12px;
         }
-    
+
         #gain-results-summary h3 {
             margin-bottom: 12px;
         }
-    
+
         #gain-results-summary p {
             line-height: 1.6;
             margin-bottom: 6px;
         }
-    
+
         /* Edit buttons */
         #gain-edit-services,
         #gain-edit-industries {
@@ -876,31 +887,31 @@
             font-size: 14px;
             margin-top: 4px;
         }
-    
+
         #gain-edit-services:hover,
         #gain-edit-industries:hover {
             text-decoration: underline;
         }
-    
+
         #gain-edit-services:focus-visible,
         #gain-edit-industries:focus-visible {
             outline: 2px solid #5579ce;
         }
-    
+
         /* Results list spacing */
         #gain-results-content li {
             margin-bottom: 10px;
         }
-    
+
         /* Results links */
         #gain-results-content a {
             color: #5579ce;
         }
-    
+
         #gain-results-content a:hover {
             text-decoration: underline;
         }
-    
+
         /* Case study match badges */
         #gain-results-content li span {
             color: #666;
@@ -911,41 +922,43 @@
             margin-left: 10px;
             display: inline-block;
         }
-    
+
         /* Exact match badge */
         #gain-results-content .gain-match-exact {
             background-color: #e6f4ea;
             color: #217a3c;
         }
-    
+
         /* Services / Industries labels */
         #gain-results-summary strong {
             color: #333;
             margin-right: 6px;
         }
-    
+
         /* Selected answers */
         #gain-results-summary p span {
             color: #555;
         }
-    
+
         /* Email icon and link */
         #gain-results-content .gain-email-link {
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-    
+
         /* Questionnaire section below hero */
         #gain-questionnaire-section {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 16px;
-            padding: 80px 24px;
+            align-items: flex-start;
+            text-align: left;
+            gap: 12px;
+            padding: 24px 40px 56px;
+            margin-top: 0;
+            background: white;
         }
-    
+
         #gain-questionnaire-section h2 {
             font-size: 36px;
             font-weight: 700;
@@ -953,7 +966,7 @@
             margin: 0;
             color: #222;
         }
-    
+
         #gain-questionnaire-section p {
             font-size: 18px;
             line-height: 1.6;
@@ -961,7 +974,7 @@
             margin: 0;
             max-width: 500px;
         }
-    
+
         /* Button wrapper and shared shadow color */
         #gain-questionnaire-section .gain-button-wrap {
             position: relative;
@@ -969,7 +982,7 @@
             isolation: isolate;
             --pixel-shadow: #9e9e9e;
         }
-    
+
         /* Two layers form the stepped bottom shadow */
         #gain-questionnaire-section .gain-button-wrap::before,
         #gain-questionnaire-section .gain-button-wrap::after {
@@ -979,7 +992,7 @@
             z-index: -1;
             pointer-events: none;
         }
-    
+
         /* Upper shadow — full button width */
         #gain-questionnaire-section .gain-button-wrap::before {
             left: 0;
@@ -987,7 +1000,7 @@
             bottom: -3px;
             height: 3px;
         }
-    
+
         /* Lower shadow — stepped inward at both ends */
         #gain-questionnaire-section .gain-button-wrap::after {
             left: 5px;
@@ -995,33 +1008,37 @@
             bottom: -7px;
             height: 4px;
         }
-    
-        /* Hide bottom shadow when pressed or disabled */
+
+        /* Hide bottom shadow when focused, pressed, or disabled */
+        #gain-questionnaire-section .gain-button-wrap:has(> button:focus-visible)::before,
+        #gain-questionnaire-section .gain-button-wrap:has(> button:focus-visible)::after,
         #gain-questionnaire-section .gain-button-wrap:has(> button:active)::before,
         #gain-questionnaire-section .gain-button-wrap:has(> button:active)::after,
         #gain-questionnaire-section .gain-button-wrap:has(> button:disabled)::before,
         #gain-questionnaire-section .gain-button-wrap:has(> button:disabled)::after {
             display: none;
         }
-    
+
         /* Get Started — Regular */
         #gain-questionnaire-section .gain-button-wrap > button {
             position: relative;
             --corner-border: #222120;
-    
             padding: 16px 32px;
             font-size: 18px;
             font-weight: 900;
             letter-spacing: 1px;
             text-transform: uppercase;
             text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-    
             background-color: #517636;
             color: #ffffff;
             border: 4px solid #222120;
             border-radius: 0;
             cursor: pointer;
-    
+
+            width: 220px;
+            box-sizing: border-box;
+            text-align: center;
+
             /* Light top edge, dark left/right/bottom edges */
             box-shadow:
                 inset 0 4px 0 #699645,
@@ -1029,25 +1046,33 @@
                 inset -4px 0 0 #3a5627,
                 inset 0 -4px 0 #3a5627;
         }
-    
+
         /* Hover — darker green, same edge shading */
         #gain-questionnaire-section .gain-button-wrap > button:hover:not(:disabled) {
             background-color: #44632d;
         }
-    
-        /* Focus — hover green with blue outer outline */
+
+        /* Focus — thicker blue outline hugging the button, with a white outer ring */
         #gain-questionnaire-section .gain-button-wrap > button:focus-visible {
             background-color: #44632d;
-            outline: 2px solid #2b46b7;
-            outline-offset: 2px;
+
+            outline: 3px solid #2b46b7;
+            outline-offset: 0;
+
+            box-shadow:
+                0 0 0 5px white,
+                inset 0 4px 0 #699645,
+                inset 4px 0 0 #3a5627,
+                inset -4px 0 0 #3a5627,
+                inset 0 -4px 0 #3a5627;
         }
-    
+
         /* Pressed — solid dark green, no inner shading */
         #gain-questionnaire-section .gain-button-wrap > button:active:not(:disabled) {
             background-color: #3a5627;
             box-shadow: none;
         }
-    
+
         /* Disabled — light gray with gray text and border */
         #gain-questionnaire-section .gain-button-wrap > button:disabled {
             background-color: #e7e1de;
@@ -1058,7 +1083,7 @@
             text-shadow: none;
             cursor: not-allowed;
         }
-    
+
         /*
          * Four stepped corners.
          * Each square covers a corner of the original border.
@@ -1076,7 +1101,7 @@
             background: white;
             pointer-events: none;
         }
-    
+
         /* Top-left corner */
         #gain-questionnaire-section .gain-button-wrap > button::before {
             top: -4px;
@@ -1084,7 +1109,7 @@
             border-right: 4px solid var(--corner-border);
             border-bottom: 4px solid var(--corner-border);
         }
-    
+
         /* Top-right corner */
         #gain-questionnaire-section .gain-button-wrap > button::after {
             top: -4px;
@@ -1092,7 +1117,7 @@
             border-left: 4px solid var(--corner-border);
             border-bottom: 4px solid var(--corner-border);
         }
-    
+
         /* Bottom-left corner */
         #gain-questionnaire-section .gain-button-wrap > button > span::before {
             bottom: -4px;
@@ -1100,7 +1125,7 @@
             border-right: 4px solid var(--corner-border);
             border-top: 4px solid var(--corner-border);
         }
-    
+
         /* Bottom-right corner */
         #gain-questionnaire-section .gain-button-wrap > button > span::after {
             bottom: -4px;
@@ -1108,7 +1133,7 @@
             border-left: 4px solid var(--corner-border);
             border-top: 4px solid var(--corner-border);
         }
-    
+
         /*
          * Bottom corner shadow seam fix.
          * Fill each bottom corner with the same opaque color
@@ -1121,8 +1146,10 @@
             background: var(--pixel-shadow);
             box-shadow: none;
         }
-    
-        /* Restore white bottom corners when pressed or disabled */
+
+        /* Restore white bottom corners when focused, pressed, or disabled */
+        #gain-questionnaire-section .gain-button-wrap > button:focus-visible > span::before,
+        #gain-questionnaire-section .gain-button-wrap > button:focus-visible > span::after,
         #gain-questionnaire-section .gain-button-wrap > button:active > span::before,
         #gain-questionnaire-section .gain-button-wrap > button:active > span::after,
         #gain-questionnaire-section .gain-button-wrap > button:disabled > span::before,
@@ -1130,8 +1157,27 @@
             background: white;
             box-shadow: none;
         }
-    `;
 
+        /*
+         * Mobile responsiveness: prevent progress step labels from overlapping.
+         * Display only the active step's label while keeping all five icons visible.
+         */
+        @media (max-width: 450px) {
+            #gain-progress {
+                gap: 4px;
+            }
+
+            .gain-progress-label {
+                opacity: 0;
+                white-space: nowrap;
+                font-size: 12px;
+            }
+
+            .gain-progress-item.is-active .gain-progress-label {
+                opacity: 1;
+            }
+        }
+    `;
 
     document.head.append(style);
 })();

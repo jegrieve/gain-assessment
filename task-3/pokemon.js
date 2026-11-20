@@ -179,7 +179,6 @@
             applyTypeFilter(container);
             revealPagination();
 
-            console.log(`Rendered Pokémon for page ${page}`);
         } catch (error) {
             if (currentRequest !== requestId) return;
 
@@ -570,8 +569,21 @@
         injectStyles();
         checkReady();
 
-        // Keep watching in case React creates or replaces the filter row
-        observer = new MutationObserver(checkReady);
+        // Coalesce frequent React DOM updates into one check per frame
+        let readyScheduled = false;
+
+        const scheduleCheckReady = () => {
+            if (readyScheduled) return;
+
+            readyScheduled = true;
+
+            requestAnimationFrame(() => {
+                readyScheduled = false;
+                checkReady();
+            });
+        };
+
+        observer = new MutationObserver(scheduleCheckReady);
 
         observer.observe(document.documentElement, {
             childList: true,

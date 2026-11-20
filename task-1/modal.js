@@ -3,7 +3,7 @@
     let initialized = false;
     let observer = null;
 
-// Wait until the homepage elements used by the questionnaire exist
+    // Wait until the homepage elements used by the questionnaire exist
     function sourcesReady() {
         if (!document.body) return false;
 
@@ -333,12 +333,21 @@
             .filter(heading => heading.tagName === "H3")
             .slice(0, 3);
 
+        const container = document.createElement("div");
+        container.className = "gain-recommendations-container";
+
         const articlesHeading = document.createElement("h3");
         articlesHeading.textContent = "Recommended articles";
-        content.append(articlesHeading);
+        
+        const description = document.createElement("p");
+        description.className = "gain-recommendations-description";
+        description.textContent = "Explore some of our latest insights.";
+        
+        container.append(articlesHeading, description);
 
         // Display articles as a list, just like case studies
         const list = document.createElement("ul");
+        list.className = "gain-recommendations-list";
 
         articles.forEach(heading => {
             // Find the article link within its surrounding card
@@ -357,12 +366,14 @@
             articleLink.textContent = heading.textContent.trim();
 
             const item = document.createElement("li");
+            item.className = "gain-recommendation-card";
             item.append(articleLink);
 
             list.append(item);
         });
 
-        content.append(list);
+        container.append(list);
+        content.append(container);
     }
 
     // Get matching case studies from the Work slider
@@ -409,10 +420,18 @@
             ...exactMatches,
             ...relatedMatches
         ].slice(0, 3);
+        const container = document.createElement("div");
+        container.className = "gain-recommendations-container";
 
         const heading = document.createElement("h3");
         heading.textContent = "Recommended case studies";
-        content.append(heading);
+        
+        const description = document.createElement("p");
+        description.className = "gain-recommendations-description";
+        description.textContent = "Explore work relevant to your selections.";
+        
+        container.append(heading, description);
+        content.append(container);
 
         if (recommendations.length === 0) {
             const message = document.createElement("p");
@@ -423,14 +442,16 @@
             link.textContent = "Browse all our work";
 
             message.append(link);
-            content.append(message);
+            container.append(message);
             return;
         }
 
         const list = document.createElement("ul");
+        list.className = "gain-recommendations-list";
 
         recommendations.forEach(study => {
             const item = document.createElement("li");
+            item.className = "gain-recommendation-card";
 
             const link = document.createElement("a");
             link.href = study.url;
@@ -448,7 +469,7 @@
             list.append(item);
         });
 
-        content.append(list);
+        container.append(list);
     }
 
     // Update results based on questionnaire answers
@@ -502,7 +523,14 @@
                     </svg>
                 `);
 
-                content.append(emailLink);
+                const emailContainer = document.createElement("div");
+                emailContainer.className = "gain-email-container";
+                
+                const emailHeading = document.createElement("h3");
+                emailHeading.textContent = "Ready to talk?";
+                
+                emailContainer.append(emailHeading, emailLink);
+                content.append(emailContainer);
             }
         }
 
@@ -651,14 +679,13 @@
     // TODO: Move CSS into modal.css before submission
 
 
-
     const style = document.createElement("style");
     style.id = "gain-questionnaire-styles";
     
     style.textContent = `
         /* Modal container */
         #gain-questionnaire-modal {
-            width: 600px;
+            width: 680px;
             max-width: 90vw;
             max-height: 90vh;
             box-sizing: border-box;
@@ -671,9 +698,18 @@
             color: #333;
         }
     
-        /* Modal entrance animation */
+        /* Consistent modal layout while open */
         #gain-questionnaire-modal[open] {
+            display: flex;
+            flex-direction: column;
             animation: gain-modal-enter 250ms ease-out both;
+        }
+    
+        /* Stable height on larger desktop screens */
+        @media (min-width: 768px) and (min-height: 620px) {
+            #gain-questionnaire-modal {
+                min-height: 540px;
+            }
         }
     
         @keyframes gain-modal-enter {
@@ -739,6 +775,7 @@
             list-style: none;
             padding: 0;
             margin: 0 0 32px;
+            flex-shrink: 0;
         }
     
         .gain-progress-item {
@@ -864,6 +901,7 @@
     
         /* Question transition when changing steps */
         #gain-questionnaire-modal [id^="gain-step-"]:not([hidden]) {
+            flex-shrink: 0;
             animation: gain-step-enter 220ms ease-out both;
         }
     
@@ -965,7 +1003,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 24px;
+            margin-top: auto;
+            padding-top: 24px;
+            flex-shrink: 0;
         }
     
         /* Ensure hidden navigation buttons stay hidden */
@@ -1113,6 +1153,149 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+        }
+    
+        /* Email contact panel */
+        #gain-results-content .gain-email-container {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 18px;
+            margin-bottom: 16px;
+            background: #eef4ff;
+            border: 1px solid #cad9f4;
+            border-radius: 10px;
+        }
+
+        #gain-results-content .gain-email-container h3 {
+            margin: 0 0 12px;
+            color: #253d70;
+            font-size: 18px;
+        }
+    
+        #gain-results-content .gain-email-container .gain-email-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            border: 1px solid #cad9f4;
+            border-radius: 8px;
+            background: white;
+            color: #365ba6;
+            font-weight: 600;
+            text-decoration: none;
+            overflow-wrap: anywhere;
+            transition: background-color 180ms ease, border-color 180ms ease;
+        }
+    
+        #gain-results-content .gain-email-container .gain-email-link:hover {
+            background: #e2edff;
+            border-color: #adc5ef;
+            text-decoration: none;
+        }
+    
+        #gain-results-content .gain-email-container svg {
+            flex-shrink: 0;
+        }
+    
+        /* Case studies/articles: heading and cards in one joined panel */
+        #gain-results-content .gain-recommendations-container {
+            min-width: 0;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+            border: 1px solid #dfe5ec;
+            border-radius: 10px;
+            background: #f8faff;
+        }
+    
+        #gain-results-content .gain-recommendations-container > h3 {
+            margin: 0;
+            padding: 14px 16px 6px;
+            line-height: 1.4;
+        }
+    
+        #gain-results-content .gain-recommendations-container > p {
+            margin: 0;
+            padding: 0 16px 16px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        #gain-results-content .gain-recommendations-container > .gain-recommendations-description {
+            padding: 0 16px 14px;
+            margin: 0;
+            color: #687385;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    
+        #gain-results-content .gain-recommendations-list {
+            display: grid;
+            gap: 10px;
+            list-style: none;
+            min-width: 0;
+            margin: 0;
+            padding: 0 12px 12px;
+        }
+    
+        #gain-results-content .gain-recommendations-list .gain-recommendation-card {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 14px 16px;
+            border: 1px solid #dfe5ec;
+            border-radius: 8px;
+            background: white;
+            transition: background-color 180ms ease, border-color 180ms ease,
+                box-shadow 180ms ease;
+        }
+    
+        #gain-results-content .gain-recommendation-card:hover,
+        #gain-results-content .gain-recommendation-card:focus-within {
+            background: #f8faff;
+            border-color: #c4d3ef;
+            box-shadow: 0 2px 8px rgba(44, 79, 137, 0.06);
+        }
+    
+        #gain-results-content .gain-recommendation-card a {
+            flex: 1 1 180px;
+            min-width: 0;
+            max-width: 100%;
+            font-weight: 600;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+            text-decoration: none;
+        }
+    
+        #gain-results-content .gain-recommendation-card span {
+            display: inline-block;
+            flex: 0 0 auto;
+            max-width: 100%;
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    
+        #gain-results-content .gain-match-related {
+            background-color: #eef0f3;
+            color: #565f69;
+        }
+    
+        #gain-results-content .gain-recommendation-card a:focus-visible,
+        #gain-results-content .gain-email-link:focus-visible {
+            outline: 2px solid #5579ce;
+            outline-offset: 3px;
+            border-radius: 2px;
         }
     
         /* Questionnaire section below hero */
@@ -1330,6 +1513,71 @@
             }
         }
     
+
+        /* Compact and scrollable recommendations on smaller screens */
+        @media (max-width: 600px) {
+            #gain-results-content .gain-recommendations-container {
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            /* Tighter heading */
+            #gain-results-content .gain-recommendations-container > h3 {
+                padding: 12px 12px 4px;
+                font-size: 16px;
+            }
+
+            /* Tighter description */
+            #gain-results-content .gain-recommendations-container > .gain-recommendations-description {
+                padding: 0 12px 10px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            /* Shorter scrollable area */
+            #gain-results-content .gain-recommendations-list {
+                max-height: min(170px, 30dvh);
+                overflow-y: auto;
+                overflow-x: hidden;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+                gap: 8px;
+                scrollbar-width: thin;
+                scrollbar-color: #cad9f4 transparent;
+            }
+
+            /* More compact cards */
+            #gain-results-content .gain-recommendations-list .gain-recommendation-card {
+                padding: 10px 12px;
+                gap: 6px 8px;
+            }
+
+            /* Allow titles and badges to share a row where possible */
+            #gain-results-content .gain-recommendation-card a {
+                flex: 1 1 130px;
+                font-size: 14px;
+                line-height: 1.35;
+            }
+
+            /* Smaller match badges */
+            #gain-results-content .gain-recommendation-card span {
+                font-size: 11px;
+                padding: 3px 6px;
+                margin-left: auto;
+            }
+
+            /* Subtle scroll hint when there are 3 cards */
+            #gain-results-content .gain-recommendations-container:has(.gain-recommendation-card:nth-child(3))::after {
+                content: "Scroll to see more ↓";
+                display: block;
+                padding: 0 12px 10px;
+                color: #687385;
+                font-size: 11px;
+                text-align: center;
+            }
+        }
+
+
         /* Respect reduced-motion preferences */
         @media (prefers-reduced-motion: reduce) {
             #gain-questionnaire-modal[open],
@@ -1350,9 +1598,8 @@
             }
         }
     `;
-    
+
     document.head.append(style);
-    
-    
+
     }
 })();

@@ -3,6 +3,7 @@
     let initialized = false;
     let observer = null;
     let requestId = 0;
+    let selectedType = "";
 
     // Get the current page number from the URL
     function getCurrentPage() {
@@ -43,6 +44,37 @@
         `).join("");
     }
 
+    // Filter Pokémon cards by the selected type
+    function applyTypeFilter(container) {
+        if (container.getAttribute("aria-busy") === "true") return;
+
+        const cards = container.querySelectorAll(".gain-pokemon-card");
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const types = Array.from(
+                card.querySelectorAll(".gain-pokemon-types span"),
+                span => span.textContent.trim().toLowerCase()
+            );
+
+            const matches = !selectedType || types.includes(selectedType);
+
+            card.hidden = !matches;
+
+            if (matches) visibleCount++;
+        });
+
+        container.querySelector(".gain-pokemon-empty")?.remove();
+
+        if (visibleCount === 0) {
+            const message = document.createElement("p");
+            message.className = "gain-pokemon-empty";
+            message.textContent = "No Pokémon of this type on this page.";
+
+            container.append(message);
+        }
+    }
+
     // Render Pokémon in our own container, outside React
     async function renderPokemon(container) {
         const page = getCurrentPage();
@@ -63,26 +95,55 @@
                 const image =
                     p.sprites.other["official-artwork"].front_default;
 
+                const abilities = p.abilities.map(ability =>
+                    ability.ability.name.replace(/-/g, " ")
+                ).join(", ");
+
                 return `
-                    <article class="gain-pokemon-card">
-                        <img
-                            src="${image}"
-                            alt="${name}"
-                            loading="lazy"
-                        >
+                    <article
+                        class="gain-pokemon-card"
+                        role="button"
+                        tabindex="0"
+                        aria-label="Show details for ${name}"
+                        aria-pressed="false"
+                    >
+                        <div class="gain-pokemon-card-inner">
 
-                        <h2>${name}</h2>
+                            <div class="gain-pokemon-card-face gain-pokemon-card-front">
+                                <img
+                                    src="${image}"
+                                    alt="${name}"
+                                    loading="lazy"
+                                >
 
-                        <div class="gain-pokemon-types">
-                            ${p.types.map(type => `
-                                <span>${type.type.name}</span>
-                            `).join("")}
+                                <h2>${name}</h2>
+
+                                <div class="gain-pokemon-types">
+                                    ${p.types.map(type => `
+                                        <span>${type.type.name}</span>
+                                    `).join("")}
+                                </div>
+                            </div>
+
+                            <div
+                                class="gain-pokemon-card-face gain-pokemon-card-back"
+                                aria-hidden="true"
+                            >
+                                <h2>${name}</h2>
+
+                                <p><strong>Pokédex:</strong> #${p.id}</p>
+                                <p><strong>Height:</strong> ${p.height / 10} m</p>
+                                <p><strong>Weight:</strong> ${p.weight / 10} kg</p>
+                                <p><strong>Abilities:</strong> ${abilities}</p>
+                            </div>
+
                         </div>
                     </article>
                 `;
             }).join("");
 
             container.setAttribute("aria-busy", "false");
+            applyTypeFilter(container);
 
             console.log(`Rendered Pokémon for page ${page}`);
         } catch (error) {
@@ -94,7 +155,51 @@
         }
     }
 
-    // Inject CSS for console testing
+    // Flip a Pokémon card between its front and back
+    function flipCard(card) {
+        const flipped = card.classList.toggle("is-flipped");
+        const name = card.querySelector("h2").textContent.trim();
+
+        card.setAttribute("aria-pressed", String(flipped));
+        card.setAttribute(
+            "aria-label",
+            flipped ? `Show front of ${name}` : `Show details for ${name}`
+        );
+
+        card.querySelector(".gain-pokemon-card-front")
+            .setAttribute("aria-hidden", String(flipped));
+
+        card.querySelector(".gain-pokemon-card-back")
+            .setAttribute("aria-hidden", String(!flipped));
+    }
+
+    // Handle card clicks and keyboard interaction
+    function initCardFlipping(container) {
+        container.addEventListener("click", event => {
+            const card = event.target.closest(
+                ".gain-pokemon-card:not(.gain-pokemon-card--loading)"
+            );
+
+            if (!card || !container.contains(card)) return;
+
+            flipCard(card);
+        });
+
+        container.addEventListener("keydown", event => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+
+            const card = event.target.closest(
+                ".gain-pokemon-card:not(.gain-pokemon-card--loading)"
+            );
+
+            if (!card || !container.contains(card)) return;
+
+            event.preventDefault();
+            flipCard(card);
+        });
+    }
+
+    // Inject CSS for testing
     // TODO: Move CSS into pokemon.css before submission
     function injectStyles() {
         if (document.querySelector("#gain-pokemon-styles")) return;
@@ -103,12 +208,32 @@
         style.id = "gain-pokemon-styles";
 
         style.textContent = `
-            /* Hide the original React articles without modifying their DOM */
+            /* Hide original React articles */
             #archive-listing ul.list-reset.grid.react {
                 display: none !important;
             }
 
-            /* Pokémon card container using Flexbox */
+            /* Hide original Tags and Capability filters */
+            .listing-filters select[name="post_tag"],
+            .listing-filters select[name="capability"] {
+                display: none !important;
+            }
+
+            /* Pokémon type dropdown */
+            #gain-pokemon-type {
+                display: block;
+                margin: 0 0 24px auto;
+                padding: 12px 16px;
+                max-width: 100%;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                background: white;
+                color: #222;
+                font: inherit;
+                cursor: pointer;
+            }
+
+            /* Pokémon grid using Flexbox */
             #gain-pokemon-grid {
                 display: flex;
                 flex-wrap: wrap;
@@ -117,20 +242,69 @@
                 box-sizing: border-box;
             }
 
-            /* Individual Pokémon cards */
+            /* Pokémon cards */
             #gain-pokemon-grid .gain-pokemon-card {
+                position: relative;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
                 flex: 0 0 calc((100% - 48px) / 3);
                 min-width: 0;
-                min-height: 320px;
-                padding: 20px;
+                height: 360px;
                 box-sizing: border-box;
                 border: 1px solid #ddd;
                 border-radius: 12px;
                 background: white;
+                perspective: 1000px;
+                cursor: pointer;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-card[hidden] {
+                display: none !important;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-card:focus-visible {
+                outline: 3px solid #2b46b7;
+                outline-offset: 3px;
+            }
+
+            /* 3D flip animation */
+            #gain-pokemon-grid .gain-pokemon-card-inner {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                transform-style: preserve-3d;
+                transition: transform 500ms ease;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-card.is-flipped .gain-pokemon-card-inner {
+                transform: rotateY(180deg);
+            }
+
+            /* Front and back of card */
+            #gain-pokemon-grid .gain-pokemon-card-face {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                box-sizing: border-box;
                 text-align: center;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-card-back {
+                justify-content: center;
+                gap: 12px;
+                transform: rotateY(180deg);
+                overflow-y: auto;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-card-back p {
+                margin: 0;
+                font-size: 16px;
+                line-height: 1.4;
             }
 
             /* Pokémon artwork */
@@ -166,10 +340,22 @@
                 text-transform: capitalize;
             }
 
+            /* No-results message */
+            #gain-pokemon-grid .gain-pokemon-empty {
+                flex-basis: 100%;
+                margin: 24px 0;
+                text-align: center;
+                font-size: 18px;
+                color: #555;
+            }
+
             /* Loading skeleton cards */
             #gain-pokemon-grid .gain-pokemon-card--loading {
                 justify-content: center;
+                align-items: center;
                 gap: 16px;
+                padding: 20px;
+                cursor: default;
             }
 
             #gain-pokemon-grid .gain-pokemon-image-placeholder {
@@ -206,9 +392,49 @@
                     flex-basis: 100%;
                 }
             }
+
+            /* Accessibility: respect reduced-motion preferences */
+            @media (prefers-reduced-motion: reduce) {
+                #gain-pokemon-grid .gain-pokemon-card-inner {
+                    transition: none;
+                }
+            }
         `;
 
         document.head.append(style);
+    }
+
+    // Replace the original capability filter with Pokémon types
+    function initTypeFilter(pokemonContainer) {
+        const filters = document.querySelector(".listing-filters");
+        if (!filters || document.querySelector("#gain-pokemon-type")) return;
+
+        const types = [
+            "normal", "fire", "water", "electric", "grass", "ice",
+            "fighting", "poison", "ground", "flying", "psychic",
+            "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
+        ];
+
+        const select = document.createElement("select");
+        select.id = "gain-pokemon-type";
+        select.setAttribute("aria-label", "Filter Pokémon by type");
+
+        select.innerHTML = `
+            <option value="">Filter by type</option>
+            ${types.map(type => `
+                <option value="${type}">
+                    ${type.charAt(0).toUpperCase() + type.slice(1)}
+                </option>
+            `).join("")}
+        `;
+
+        // Keep our dropdown outside React's managed elements
+        filters.after(select);
+
+        select.addEventListener("change", () => {
+            selectedType = select.value;
+            applyTypeFilter(pokemonContainer);
+        });
     }
 
     // Wait for React's article grid to exist
@@ -219,7 +445,9 @@
             "#archive-listing ul.list-reset.grid.react"
         );
 
-        if (!reactGrid) return;
+        const filters = document.querySelector(".listing-filters");
+
+        if (!reactGrid || !filters) return;
 
         // Create our own container outside React's managed DOM
         const reactContainer = reactGrid.parentElement;
@@ -233,6 +461,10 @@
         initialized = true;
         observer?.disconnect();
         observer = null;
+
+        // Initialize our own filter and card interactions
+        initTypeFilter(pokemonContainer);
+        initCardFlipping(pokemonContainer);
 
         // Watch React's article area for SPA pagination changes
         let lastPath = location.pathname;

@@ -1,4 +1,4 @@
- (() => {
+(() => {
     let initialized = false;
     let observer = null;
     let requestId = 0;
@@ -42,6 +42,12 @@
                 <div class="gain-pokemon-tag-placeholder"></div>
             </article>
         `).join("");
+    }
+
+    // Reveal pagination after the initial Pokémon page finishes loading
+    function revealPagination() {
+        document.querySelector("#archive-listing")
+            ?.classList.add("gain-pokemon-loaded");
     }
 
     // Filter Pokémon cards by the selected type
@@ -155,6 +161,7 @@
 
             container.setAttribute("aria-busy", "false");
             applyTypeFilter(container);
+            revealPagination();
 
             console.log(`Rendered Pokémon for page ${page}`);
         } catch (error) {
@@ -163,6 +170,7 @@
             console.error(error);
             container.textContent = "Could not load Pokémon. Please try again.";
             container.setAttribute("aria-busy", "false");
+            revealPagination();
         }
     }
 
@@ -221,6 +229,11 @@
             /* Hide original articles before and after React initializes */
             #archive-listing ul.list-reset.grid {
                 display: none !important;
+            }
+
+            /* Hide incomplete pagination during initial loading */
+            #archive-listing:not(.gain-pokemon-loaded) nav.m-y-40 {
+                visibility: hidden;
             }
 
             /* Hide original Tags and Capability filters */
@@ -497,7 +510,7 @@
             characterData: true
         });
 
-        // Render Pokémon on the initial page
+        // Render Pokémon and skeleton cards during loading
         renderPokemon(pokemonContainer);
     }
 

@@ -32,8 +32,30 @@
             </svg>
         </button>
 
-        <div id="gain-drawer-content">
-            <p>Case studies will appear here.</p>
+        <div id="gain-drawer-content"></div>
+
+        <div
+            class="gain-drawer-navigation"
+            role="group"
+            aria-label="Case study navigation"
+        >
+            <button
+                class="gain-drawer-prev"
+                type="button"
+                aria-label="Previous case studies"
+            >
+                &#8592;
+            </button>
+
+            <span class="gain-drawer-page" aria-live="polite"></span>
+
+            <button
+                class="gain-drawer-next"
+                type="button"
+                aria-label="Next case studies"
+            >
+                &#8594;
+            </button>
         </div>
     `;
 
@@ -109,8 +131,6 @@
     const content = drawer.querySelector("#gain-drawer-content");
 
     // Render the case studies inside the drawer
-    content.replaceChildren();
-
     caseStudies.forEach((study) => {
         const card = document.createElement("article");
         card.className = "gain-drawer-card";
@@ -119,13 +139,39 @@
         image.src = study.imageUrl;
         image.alt = study.title;
         image.loading = "lazy";
+        image.draggable = false;
 
         const title = document.createElement("h3");
         title.textContent = study.title;
 
-        const tag = document.createElement("span");
+        // Create the industry tag and its tooltip
+        const tagWrapper = document.createElement("div");
+        tagWrapper.className = "gain-drawer-tag-wrapper";
+
+        const tag = document.createElement("button");
+        tag.type = "button";
         tag.className = "gain-drawer-card-tag";
         tag.textContent = study.industry;
+        tag.setAttribute("aria-expanded", "false");
+
+        const tooltip = document.createElement("span");
+        tooltip.className = "gain-drawer-tooltip";
+        tooltip.setAttribute("role", "tooltip");
+
+        const serviceText = document.createElement("span");
+        serviceText.textContent = `Service: ${study.service}`;
+
+        const industryText = document.createElement("span");
+        industryText.textContent = `Industry: ${study.industry}`;
+
+        tooltip.append(serviceText, industryText);
+        tagWrapper.append(tag, tooltip);
+
+        // Allow tapping the tag to toggle the tooltip on mobile
+        tag.addEventListener("click", () => {
+            const isOpen = tagWrapper.classList.toggle("is-active");
+            tag.setAttribute("aria-expanded", String(isOpen));
+        });
 
         const description = document.createElement("p");
         description.textContent = study.description;
@@ -134,13 +180,156 @@
         link.href = study.url;
         link.textContent = "View case study";
 
-        card.append(image, title, tag, description, link);
+        card.append(image, title, tagWrapper, description, link);
         content.append(card);
     });
+
+    // Get slider navigation elements
+    const navigation = drawer.querySelector(".gain-drawer-navigation");
+    const prevButton = drawer.querySelector(".gain-drawer-prev");
+    const nextButton = drawer.querySelector(".gain-drawer-next");
+    const pageCounter = drawer.querySelector(".gain-drawer-page");
+
+    let currentPage = 0;
+
+    // Determine how many cards fit on each page
+    function getCardsPerPage() {
+        if (window.innerWidth <= 639) return 1;
+        if (window.innerWidth <= 1023) return 2;
+        return 4;
+    }
+
+    // Calculate the total number of pages
+    function getTotalPages() {
+        return Math.ceil(caseStudies.length / getCardsPerPage());
+    }
+
+    // Update the page counter and navigation buttons
+    function updateNavigation() {
+        const totalPages = getTotalPages();
+
+        pageCounter.textContent = `${currentPage + 1} / ${totalPages}`;
+        prevButton.disabled = currentPage === 0;
+        nextButton.disabled = currentPage === totalPages - 1;
+    }
+
+    // Scroll to the requested page
+    function goToPage(page) {
+        const totalPages = getTotalPages();
+
+        currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        const firstCard = content.querySelector(".gain-drawer-card");
+        if (!firstCard) return;
+
+        const gap = parseFloat(getComputedStyle(content).gap) || 0;
+        const cardWidth = firstCard.getBoundingClientRect().width;
+
+        content.scrollTo({
+            left: currentPage * getCardsPerPage() * (cardWidth + gap),
+            behavior: "smooth"
+        });
+
+        updateNavigation();
+    }
+
+    // Navigate using arrow buttons
+    prevButton.addEventListener("click", () => {
+        goToPage(currentPage - 1);
+    });
+
+    nextButton.addEventListener("click", () => {
+        goToPage(currentPage + 1);
+    });
+
+    // Update pagination when scrolling or swiping manually
+    content.addEventListener("scroll", () => {
+        const firstCard = content.querySelector(".gain-drawer-card");
+        if (!firstCard) return;
+
+        const gap = parseFloat(getComputedStyle(content).gap) || 0;
+
+        const pageWidth =
+            getCardsPerPage() * (firstCard.getBoundingClientRect().width + gap);
+
+        const maxScroll = content.scrollWidth - content.clientWidth;
+
+        if (maxScroll > 0 && content.scrollLeft >= maxScroll - 2) {
+            currentPage = getTotalPages() - 1;
+        } else {
+            currentPage = Math.round(content.scrollLeft / pageWidth);
+        }
+
+        updateNavigation();
+    }, { passive: true });
+
+    // Allow desktop users to drag the slider with their mouse
+    let startX = 0;
+    let startScrollLeft = 0;
+    let isPointerDown = false;
+    let isDragging = false;
+    let wasDragged = false;
+
+    content.addEventListener("pointerdown", (event) => {
+        if (event.pointerType !== "mouse" || event.button !== 0) return;
+
+        isPointerDown = true;
+        isDragging = false;
+        wasDragged = false;
+
+        startX = event.clientX;
+        startScrollLeft = content.scrollLeft;
+    });
+
+    content.addEventListener("pointermove", (event) => {
+        if (!isPointerDown) return;
+
+        const distance = event.clientX - startX;
+
+        // Distinguish dragging from a normal click
+        if (!isDragging && Math.abs(distance) > 5) {
+            isDragging = true;
+            wasDragged = true;
+            content.classList.add("is-dragging");
+            content.setPointerCapture(event.pointerId);
+        }
+
+        if (isDragging) {
+            content.scrollLeft = startScrollLeft - distance;
+        }
+    });
+
+    // Stop dragging when the mouse is released
+    function stopDragging() {
+        isPointerDown = false;
+        isDragging = false;
+        content.classList.remove("is-dragging");
+    }
+
+    content.addEventListener("pointerup", stopDragging);
+    content.addEventListener("pointercancel", stopDragging);
+
+    // Prevent accidentally opening a case study after dragging
+    content.addEventListener("click", (event) => {
+        if (wasDragged) {
+            event.preventDefault();
+            event.stopPropagation();
+            wasDragged = false;
+        }
+    }, true);
+
+    // Reset pagination when the viewport changes
+    window.addEventListener("resize", () => {
+        goToPage(0);
+    });
+
+    // Initialize navigation
+    updateNavigation();
 
     // Keep hidden drawer content inaccessible
     content.inert = true;
     content.setAttribute("aria-hidden", "true");
+    navigation.inert = true;
 
     // Update drawer and overlay visibility
     function setDrawerOpen(isOpen) {
@@ -148,8 +337,10 @@
         overlay.classList.toggle("is-visible", isOpen);
 
         tab.setAttribute("aria-expanded", String(isOpen));
+
         content.inert = !isOpen;
         content.setAttribute("aria-hidden", String(!isOpen));
+        navigation.inert = !isOpen;
     }
 
     // Toggle drawer when clicking the tab
@@ -244,6 +435,19 @@
             overflow-x: auto;
             overflow-y: hidden;
             pointer-events: auto;
+
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            overscroll-behavior-x: contain;
+            cursor: grab;
+        }
+
+        /* Disable snapping and smooth scrolling while dragging */
+        #gain-drawer-content.is-dragging {
+            cursor: grabbing;
+            scroll-behavior: auto;
+            scroll-snap-type: none;
+            user-select: none;
         }
 
         /* Individual case-study cards */
@@ -251,12 +455,13 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            flex: 0 0 260px;
+            flex: 0 0 calc((100% - 48px) / 4);
             min-width: 0;
             padding: 12px;
             box-sizing: border-box;
             border: 1px solid #ddd;
             border-radius: 8px;
+            scroll-snap-align: start;
         }
 
         #gain-footer-drawer .gain-drawer-card img {
@@ -272,12 +477,59 @@
             line-height: 1.3;
         }
 
+        /* Container for the industry tag and tooltip */
+        #gain-footer-drawer .gain-drawer-tag-wrapper {
+            position: relative;
+            align-self: stretch;
+        }
+
+        /* Interactive industry tag */
         #gain-footer-drawer .gain-drawer-card-tag {
-            align-self: flex-start;
             padding: 4px 8px;
             background: #f0f0f0;
+            border: none;
             border-radius: 4px;
+            color: #222;
+            cursor: help;
+            font: inherit;
             font-size: 12px;
+        }
+
+        /* Tooltip with case-study service and industry */
+        #gain-footer-drawer .gain-drawer-tooltip {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            background: #222;
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity 150ms ease,
+                        transform 150ms ease,
+                        visibility 150ms ease;
+        }
+
+        /* Show tooltip on hover, keyboard focus, or tap */
+        #gain-footer-drawer .gain-drawer-tag-wrapper:hover .gain-drawer-tooltip,
+        #gain-footer-drawer .gain-drawer-card-tag:focus-visible + .gain-drawer-tooltip,
+        #gain-footer-drawer .gain-drawer-tag-wrapper.is-active .gain-drawer-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         #gain-footer-drawer .gain-drawer-card p {
@@ -291,6 +543,41 @@
             font-size: 14px;
             font-weight: 600;
             color: #2b46b7;
+        }
+
+        /* Slider pagination and navigation */
+        #gain-footer-drawer .gain-drawer-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            padding: 12px 24px;
+            box-sizing: border-box;
+            background: #fff;
+            pointer-events: auto;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            color: #222;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        #gain-footer-drawer .gain-drawer-page {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
         }
 
         /* Background overlay behind the drawer */
@@ -311,19 +598,20 @@
             visibility: visible;
             pointer-events: auto;
         }
-            /* Tablet: two cards per view */
-@media (max-width: 1023px) {
-    #gain-footer-drawer .gain-drawer-card {
-        flex-basis: calc((100% - 16px) / 2);
-    }
-}
 
-/* Mobile: one card per view */
-@media (max-width: 639px) {
-    #gain-footer-drawer .gain-drawer-card {
-        flex-basis: 100%;
-    }
-}
+        /* Tablet: two cards per view */
+        @media (max-width: 1023px) {
+            #gain-footer-drawer .gain-drawer-card {
+                flex-basis: calc((100% - 16px) / 2);
+            }
+        }
+
+        /* Mobile: one card per view */
+        @media (max-width: 639px) {
+            #gain-footer-drawer .gain-drawer-card {
+                flex-basis: 100%;
+            }
+        }
     `;
 
     document.head.append(style);

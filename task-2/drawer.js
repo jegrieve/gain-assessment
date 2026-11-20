@@ -7,56 +7,93 @@
     const drawer = document.createElement("div");
     drawer.id = "gain-footer-drawer";
 
-    // Chevron icon from Lucide: https://lucide.dev (ISC License)
+    // Chevron icons from Lucide: https://lucide.dev (ISC License)
     drawer.innerHTML = `
-        <button
-            class="gain-drawer-tab"
-            type="button"
-            aria-expanded="false"
-            aria-controls="gain-drawer-content"
-        >
-            <span>Explore our work</span>
-
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-            >
-                <path d="m18 15-6-6-6 6"/>
-            </svg>
-        </button>
-
-        <div id="gain-drawer-content"></div>
-
-        <div
-            class="gain-drawer-navigation"
-            role="group"
-            aria-label="Case study navigation"
-        >
+        <div class="gain-drawer-tab">
             <button
-                class="gain-drawer-prev"
+                class="gain-drawer-toggle gain-drawer-label"
                 type="button"
-                aria-label="Previous case studies"
+                aria-expanded="false"
+                aria-controls="gain-drawer-content"
             >
-                &#8592;
+                Explore our work
             </button>
 
-            <span class="gain-drawer-page" aria-live="polite"></span>
+            <div
+                class="gain-drawer-navigation"
+                role="group"
+                aria-label="Case study navigation"
+            >
+                <button
+                    class="gain-drawer-prev"
+                    type="button"
+                    aria-label="Previous case studies"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                </button>
+
+                <span
+                    class="gain-drawer-page"
+                    aria-live="polite"
+                ></span>
+
+                <button
+                    class="gain-drawer-next"
+                    type="button"
+                    aria-label="Next case studies"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
 
             <button
-                class="gain-drawer-next"
+                class="gain-drawer-toggle gain-drawer-chevron"
                 type="button"
-                aria-label="Next case studies"
+                aria-label="Open case studies"
+                aria-expanded="false"
+                aria-controls="gain-drawer-content"
             >
-                &#8594;
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path d="m18 15-6-6-6 6"/>
+                </svg>
             </button>
         </div>
+
+        <div id="gain-drawer-content"></div>
     `;
 
     document.body.append(drawer);
@@ -127,7 +164,8 @@
     });
 
     // Get drawer elements
-    const tab = drawer.querySelector(".gain-drawer-tab");
+    const toggleButtons = drawer.querySelectorAll(".gain-drawer-toggle");
+    const chevronButton = drawer.querySelector(".gain-drawer-chevron");
     const content = drawer.querySelector("#gain-drawer-content");
 
     // Track the currently visible tooltip
@@ -164,7 +202,7 @@
         const padding = 12;
         const gap = 12;
 
-        // Keep the tooltip within the horizontal viewport boundaries
+        // Keep the tooltip within horizontal viewport boundaries
         const left = Math.max(
             padding,
             Math.min(
@@ -176,7 +214,7 @@
         const spaceAbove = tagRect.top;
         const spaceBelow = window.innerHeight - tagRect.bottom;
 
-        // Prefer above, unless there is more suitable space below
+        // Prefer above, unless below has more suitable space
         const showAbove =
             spaceAbove >= tooltipHeight + gap + padding ||
             (
@@ -306,7 +344,7 @@
         content.append(card);
     });
 
-    // Get slider navigation elements
+    // Get slider navigation elements in the top tab
     const navigation = drawer.querySelector(".gain-drawer-navigation");
     const prevButton = drawer.querySelector(".gain-drawer-prev");
     const nextButton = drawer.querySelector(".gain-drawer-next");
@@ -357,10 +395,12 @@
 
     // Navigate using arrow buttons
     prevButton.addEventListener("click", () => {
+        hideTooltip();
         goToPage(currentPage - 1);
     });
 
     nextButton.addEventListener("click", () => {
+        hideTooltip();
         goToPage(currentPage + 1);
     });
 
@@ -478,16 +518,26 @@
         drawer.classList.toggle("is-open", isOpen);
         overlay.classList.toggle("is-visible", isOpen);
 
-        tab.setAttribute("aria-expanded", String(isOpen));
+        // Update both drawer toggle buttons
+        toggleButtons.forEach((button) => {
+            button.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        chevronButton.setAttribute(
+            "aria-label",
+            isOpen ? "Close case studies" : "Open case studies"
+        );
 
         content.inert = !isOpen;
         content.setAttribute("aria-hidden", String(!isOpen));
         navigation.inert = !isOpen;
     }
 
-    // Toggle drawer when clicking the tab
-    tab.addEventListener("click", () => {
-        setDrawerOpen(!drawer.classList.contains("is-open"));
+    // Toggle drawer using the label or chevron
+    toggleButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setDrawerOpen(!drawer.classList.contains("is-open"));
+        });
     });
 
     // Close drawer when clicking the overlay
@@ -533,33 +583,114 @@
             transform: translateY(0);
         }
 
-        /* Drawer tab */
+        /* Top tab with toggle buttons and inline pagination */
         #gain-footer-drawer .gain-drawer-tab {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
             height: 52px;
-            padding: 0 24px;
+            padding: 0 16px;
             box-sizing: border-box;
             flex-shrink: 0;
             background: #fff;
             color: #222;
             border: 1px solid #ddd;
+            border-bottom: none;
             border-radius: 12px 12px 0 0;
             font: inherit;
             font-weight: 600;
-            cursor: pointer;
             pointer-events: auto;
         }
 
-        /* Animate chevron rotation */
-        #gain-footer-drawer .gain-drawer-tab svg {
+        /* Drawer toggle buttons */
+        #gain-footer-drawer .gain-drawer-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 4px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #222;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #gain-footer-drawer .gain-drawer-label {
+            white-space: nowrap;
+        }
+
+        #gain-footer-drawer .gain-drawer-chevron {
+            margin-left: 4px;
+        }
+
+        #gain-footer-drawer .gain-drawer-toggle:hover {
+            background: #f3f4f6;
+        }
+
+        #gain-footer-drawer .gain-drawer-toggle:focus-visible {
+            outline: 2px solid #2b46b7;
+            outline-offset: 2px;
+        }
+
+        /* Animate the drawer chevron */
+        #gain-footer-drawer .gain-drawer-chevron svg {
             transition: transform 350ms ease;
         }
 
-        #gain-footer-drawer.is-open .gain-drawer-tab svg {
+        #gain-footer-drawer.is-open .gain-drawer-chevron svg {
             transform: rotate(180deg);
+        }
+
+        /* Inline pagination, visible only when drawer is open */
+        #gain-footer-drawer .gain-drawer-navigation {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        #gain-footer-drawer.is-open .gain-drawer-navigation {
+            display: flex;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #222;
+            cursor: pointer;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button:focus-visible {
+            outline: 2px solid #2b46b7;
+            outline-offset: 2px;
+        }
+
+        #gain-footer-drawer .gain-drawer-navigation button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        #gain-footer-drawer .gain-drawer-page {
+            color: #222;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         /* Horizontally scrollable case-study container */
@@ -573,7 +704,7 @@
             padding: 20px 24px;
             box-sizing: border-box;
             background: #fff;
-            border-top: 1px solid #ddd;
+            border-top: none;
             overflow-x: auto;
             overflow-y: hidden;
             pointer-events: auto;
@@ -735,41 +866,6 @@
         #gain-footer-drawer .gain-drawer-card a:focus-visible {
             outline: 3px solid #2b46b7;
             outline-offset: 3px;
-        }
-
-        /* Slider pagination and navigation */
-        #gain-footer-drawer .gain-drawer-navigation {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            width: 100%;
-            padding: 12px 24px;
-            box-sizing: border-box;
-            background: #fff;
-            pointer-events: auto;
-        }
-
-        #gain-footer-drawer .gain-drawer-navigation button {
-            width: 36px;
-            height: 36px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #fff;
-            color: #222;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        #gain-footer-drawer .gain-drawer-navigation button:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
-
-        #gain-footer-drawer .gain-drawer-page {
-            font-size: 14px;
-            font-weight: 600;
-            color: #222;
         }
 
         /* Background overlay behind the drawer */

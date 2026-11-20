@@ -651,6 +651,7 @@
     // TODO: Move CSS into modal.css before submission
 
 
+
     const style = document.createElement("style");
     style.id = "gain-questionnaire-styles";
     
@@ -668,6 +669,23 @@
             overflow-y: auto;
             background-color: white;
             color: #333;
+        }
+    
+        /* Modal entrance animation */
+        #gain-questionnaire-modal[open] {
+            animation: gain-modal-enter 250ms ease-out both;
+        }
+    
+        @keyframes gain-modal-enter {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
     
         /* Dark background behind modal */
@@ -704,11 +722,14 @@
             font-size: 28px;
             line-height: 1;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition:
+                background-color 0.2s ease,
+                transform 160ms ease;
         }
     
         #gain-close:hover {
             background-color: #f1f3f5;
+            transform: scale(1.06);
         }
     
         /* Progress bar container */
@@ -836,21 +857,26 @@
             }
         }
     
-        /* Respect reduced-motion preferences */
-        @media (prefers-reduced-motion: reduce) {
-            .gain-progress-circle,
-            .gain-progress-item:not(:first-child)::before {
-                transition: none;
-            }
-    
-            .is-complete .gain-progress-check {
-                animation: none;
-            }
-        }
-    
         /* Hide inactive questionnaire steps */
         #gain-questionnaire-modal [id^="gain-step-"][hidden] {
             display: none !important;
+        }
+    
+        /* Question transition when changing steps */
+        #gain-questionnaire-modal [id^="gain-step-"]:not([hidden]) {
+            animation: gain-step-enter 220ms ease-out both;
+        }
+    
+        @keyframes gain-step-enter {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     
         /* Question headings */
@@ -885,6 +911,31 @@
             padding: 4px 12px;
             font-size: 16px;
             cursor: pointer;
+        }
+    
+        /* Smooth hover and selection feedback for all answer options */
+        #gain-questionnaire-modal #gain-service-options label,
+        #gain-questionnaire-modal #gain-industry-options label,
+        #gain-questionnaire-modal #gain-step-3 label,
+        #gain-questionnaire-modal #gain-step-4 label {
+            border-radius: 6px;
+            transition: background-color 180ms ease;
+        }
+    
+        /* Hover highlights */
+        #gain-questionnaire-modal #gain-service-options label:hover,
+        #gain-questionnaire-modal #gain-industry-options label:hover,
+        #gain-questionnaire-modal #gain-step-3 label:hover,
+        #gain-questionnaire-modal #gain-step-4 label:hover {
+            background-color: #f2f6ff;
+        }
+    
+        /* Selected answer highlights */
+        #gain-questionnaire-modal #gain-service-options label:has(input:checked),
+        #gain-questionnaire-modal #gain-industry-options label:has(input:checked),
+        #gain-questionnaire-modal #gain-step-3 label:has(input:checked),
+        #gain-questionnaire-modal #gain-step-4 label:has(input:checked) {
+            background-color: #e7efff;
         }
     
         /* Checkbox and radio appearance */
@@ -937,7 +988,11 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+    
+            /* Smooth transition from disabled gray to active blue */
+            transition:
+                background-color 200ms ease,
+                color 200ms ease;
         }
     
         #gain-next:hover {
@@ -1274,9 +1329,30 @@
                 opacity: 1;
             }
         }
+    
+        /* Respect reduced-motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            #gain-questionnaire-modal[open],
+            #gain-questionnaire-modal [id^="gain-step-"]:not([hidden]),
+            .is-complete .gain-progress-check {
+                animation: none;
+            }
+    
+            .gain-progress-circle,
+            .gain-progress-item:not(:first-child)::before,
+            #gain-close,
+            #gain-next,
+            #gain-questionnaire-modal #gain-service-options label,
+            #gain-questionnaire-modal #gain-industry-options label,
+            #gain-questionnaire-modal #gain-step-3 label,
+            #gain-questionnaire-modal #gain-step-4 label {
+                transition: none;
+            }
+        }
     `;
     
     document.head.append(style);
+    
     
     }
 })();

@@ -94,78 +94,6 @@
         }
     }
 
-    // Wait for React's article grid to exist
-    function initPokemon() {
-        if (initialized || document.querySelector("#gain-pokemon-grid")) return;
-
-        const reactGrid = document.querySelector(
-            "#archive-listing ul.list-reset.grid.react"
-        );
-
-        if (!reactGrid) return;
-
-        // Create our own container outside React's managed DOM
-        const reactContainer = reactGrid.parentElement;
-
-        const pokemonContainer = document.createElement("div");
-        pokemonContainer.id = "gain-pokemon-grid";
-        pokemonContainer.setAttribute("aria-label", "Pokémon");
-
-        reactContainer.before(pokemonContainer);
-
-        initialized = true;
-        observer?.disconnect();
-        observer = null;
-
-        // Watch React's article area for SPA pagination changes
-        let lastPath = location.pathname;
-
-        const pageObserver = new MutationObserver(() => {
-            requestAnimationFrame(() => {
-                const currentPath = location.pathname;
-
-                if (currentPath === lastPath) return;
-
-                lastPath = currentPath;
-                renderPokemon(pokemonContainer);
-            });
-        });
-
-        pageObserver.observe(reactContainer, {
-            childList: true,
-            subtree: true,
-            characterData: true
-        });
-
-        // Render Pokémon on the initial page
-        renderPokemon(pokemonContainer);
-    }
-
-    function start() {
-        injectStyles();
-        initPokemon();
-
-        if (initialized) return;
-
-        // Handle React content that loads asynchronously
-        observer = new MutationObserver(initPokemon);
-
-        observer.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-    // Support execution before or after the DOM is ready
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", start, {
-            once: true
-        });
-    } else {
-        start();
-    }
-})();
-
     // Inject CSS for console testing
     // TODO: Move CSS into pokemon.css before submission
     function injectStyles() {
@@ -282,3 +210,75 @@
 
         document.head.append(style);
     }
+
+    // Wait for React's article grid to exist
+    function initPokemon() {
+        if (initialized || document.querySelector("#gain-pokemon-grid")) return;
+
+        const reactGrid = document.querySelector(
+            "#archive-listing ul.list-reset.grid.react"
+        );
+
+        if (!reactGrid) return;
+
+        // Create our own container outside React's managed DOM
+        const reactContainer = reactGrid.parentElement;
+
+        const pokemonContainer = document.createElement("div");
+        pokemonContainer.id = "gain-pokemon-grid";
+        pokemonContainer.setAttribute("aria-label", "Pokémon");
+
+        reactContainer.before(pokemonContainer);
+
+        initialized = true;
+        observer?.disconnect();
+        observer = null;
+
+        // Watch React's article area for SPA pagination changes
+        let lastPath = location.pathname;
+
+        const pageObserver = new MutationObserver(() => {
+            requestAnimationFrame(() => {
+                const currentPath = location.pathname;
+
+                if (currentPath === lastPath) return;
+
+                lastPath = currentPath;
+                renderPokemon(pokemonContainer);
+            });
+        });
+
+        pageObserver.observe(reactContainer, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+
+        // Render Pokémon on the initial page
+        renderPokemon(pokemonContainer);
+    }
+
+    function start() {
+        injectStyles();
+        initPokemon();
+
+        if (initialized) return;
+
+        // Handle React content that loads asynchronously
+        observer = new MutationObserver(initPokemon);
+
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Support execution before or after the DOM is ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, {
+            once: true
+        });
+    } else {
+        start();
+    }
+})();

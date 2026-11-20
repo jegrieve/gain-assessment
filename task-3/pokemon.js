@@ -6,6 +6,17 @@
     let selectedType = "";
     const pageCache = new Map();
 
+    // Escape API-derived values before inserting them into HTML
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
     // Get the current page number from the URL
     function getCurrentPage() {
         const match = location.pathname.match(/\/blog\/page\/(\d+)\/?/);
@@ -107,15 +118,19 @@
             if (currentRequest !== requestId) return;
 
             container.innerHTML = pokemon.map(p => {
-                const name =
-                    p.name.charAt(0).toUpperCase() + p.name.slice(1);
+                const name = escapeHtml(
+                    p.name.charAt(0).toUpperCase() + p.name.slice(1)
+                );
 
-                const image =
-                    p.sprites.other["official-artwork"].front_default;
+                const image = escapeHtml(
+                    p.sprites.other["official-artwork"].front_default
+                );
 
-                const abilities = p.abilities.map(ability =>
-                    ability.ability.name.replace(/-/g, " ")
-                ).join(", ");
+                const abilities = escapeHtml(
+                    p.abilities.map(ability =>
+                        ability.ability.name.replace(/-/g, " ")
+                    ).join(", ")
+                );
 
                 return `
                     <article
@@ -138,7 +153,7 @@
 
                                 <div class="gain-pokemon-types">
                                     ${p.types.map(type => `
-                                        <span>${type.type.name}</span>
+                                        <span>${escapeHtml(type.type.name)}</span>
                                     `).join("")}
                                 </div>
                             </div>
@@ -149,7 +164,7 @@
                             >
                                 <h2>${name}</h2>
 
-                                <p><strong>Pokédex:</strong> #${p.id}</p>
+                                <p><strong>Pokédex:</strong> #${escapeHtml(p.id)}</p>
                                 <p><strong>Height:</strong> ${p.height / 10} m</p>
                                 <p><strong>Weight:</strong> ${p.weight / 10} kg</p>
                                 <p><strong>Abilities:</strong> ${abilities}</p>

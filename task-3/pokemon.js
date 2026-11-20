@@ -1,3 +1,4 @@
+
 (() => {
     let initialized = false;
     let observer = null;
@@ -236,24 +237,13 @@
                 visibility: hidden;
             }
 
-            /* Hide original Tags and Capability filters */
+            /*
+             * Hide the original Tags and Capability filters.
+             * Our Pokémon type dropdown replaces Capability.
+             */
             .listing-filters select[name="post_tag"],
             .listing-filters select[name="capability"] {
                 display: none !important;
-            }
-
-            /* Pokémon type dropdown */
-            #gain-pokemon-type {
-                display: block;
-                margin: 0 0 24px auto;
-                padding: 12px 16px;
-                max-width: 100%;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                background: white;
-                color: #222;
-                font: inherit;
-                cursor: pointer;
             }
 
             /* Pokémon grid using Flexbox */
@@ -428,10 +418,35 @@
         (document.head || document.documentElement).append(style);
     }
 
-    // Replace the original capability filter with Pokémon types
-    function initTypeFilter(pokemonContainer) {
-        const filters = document.querySelector(".listing-filters");
-        if (!filters || document.querySelector("#gain-pokemon-type")) return;
+    // Insert the Pokémon type dropdown only when GAIN's filter row is ready
+    function initTypeFilter() {
+        const pokemonContainer = document.querySelector("#gain-pokemon-grid");
+
+        const dropdown = document.querySelector(
+            ".listing-filters .filter-dropdown"
+        );
+
+        const capability = dropdown?.querySelector(
+            'select[name="capability"]'
+        );
+
+        // Wait until the original Capability dropdown exists
+        if (!pokemonContainer || !capability) return;
+
+        const existingSelect = document.querySelector("#gain-pokemon-type");
+
+        // If React moved or replaced its filter row, keep ours in place
+        if (existingSelect) {
+            if (
+                existingSelect.parentElement !== dropdown ||
+                existingSelect.previousElementSibling !== capability
+            ) {
+                capability.after(existingSelect);
+            }
+
+            existingSelect.value = selectedType;
+            return;
+        }
 
         const types = [
             "normal", "fire", "water", "electric", "grass", "ice",
@@ -452,8 +467,10 @@
             `).join("")}
         `;
 
-        // Keep our dropdown outside React's managed elements
-        filters.after(select);
+        select.value = selectedType;
+
+        // Match GAIN's original dropdown styling and position
+        capability.after(select);
 
         select.addEventListener("change", () => {
             selectedType = select.value;
@@ -483,11 +500,8 @@
         reactContainer.before(pokemonContainer);
 
         initialized = true;
-        observer?.disconnect();
-        observer = null;
 
-        // Initialize filter and card interactions
-        initTypeFilter(pokemonContainer);
+        // Set up card interactions independently of React's DOM
         initCardFlipping(pokemonContainer);
 
         // Watch React's article area for SPA pagination changes
@@ -514,6 +528,12 @@
         renderPokemon(pokemonContainer);
     }
 
+    // Initialize Pokémon and independently check the filter's readiness
+    function checkReady() {
+        initPokemon();
+        initTypeFilter();
+    }
+
     function start() {
         // At document-start, even the <html> element might not exist yet
         if (!document.documentElement) {
@@ -531,14 +551,12 @@
             return;
         }
 
-        // Hide React articles immediately, before waiting for DOM readiness
+        // Hide original articles immediately, before waiting for DOM readiness
         injectStyles();
-        initPokemon();
+        checkReady();
 
-        if (initialized) return;
-
-        // Wait for React content to appear
-        observer = new MutationObserver(initPokemon);
+        // Keep watching in case React creates or replaces the filter row
+        observer = new MutationObserver(checkReady);
 
         observer.observe(document.documentElement, {
             childList: true,

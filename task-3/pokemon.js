@@ -1,5 +1,4 @@
-
-(() => {
+ (() => {
     let initialized = false;
     let observer = null;
     let requestId = 0;
@@ -211,8 +210,7 @@
         });
     }
 
-    // Inject CSS for testing
-    // TODO: Move CSS into pokemon.css before submission
+    // Inject CSS immediately to hide original articles before they render
     function injectStyles() {
         if (document.querySelector("#gain-pokemon-styles")) return;
 
@@ -220,8 +218,8 @@
         style.id = "gain-pokemon-styles";
 
         style.textContent = `
-            /* Hide original React articles */
-            #archive-listing ul.list-reset.grid.react {
+            /* Hide original articles before and after React initializes */
+            #archive-listing ul.list-reset.grid {
                 display: none !important;
             }
 
@@ -413,7 +411,8 @@
             }
         `;
 
-        document.head.append(style);
+        // document.head may not exist yet at document-start
+        (document.head || document.documentElement).append(style);
     }
 
     // Replace the original capability filter with Pokémon types
@@ -474,7 +473,7 @@
         observer?.disconnect();
         observer = null;
 
-        // Initialize our own filter and card interactions
+        // Initialize filter and card interactions
         initTypeFilter(pokemonContainer);
         initCardFlipping(pokemonContainer);
 
@@ -503,12 +502,29 @@
     }
 
     function start() {
+        // At document-start, even the <html> element might not exist yet
+        if (!document.documentElement) {
+            const bootstrapObserver = new MutationObserver(() => {
+                if (!document.documentElement) return;
+
+                bootstrapObserver.disconnect();
+                start();
+            });
+
+            bootstrapObserver.observe(document, {
+                childList: true
+            });
+
+            return;
+        }
+
+        // Hide React articles immediately, before waiting for DOM readiness
         injectStyles();
         initPokemon();
 
         if (initialized) return;
 
-        // Handle React content that loads asynchronously
+        // Wait for React content to appear
         observer = new MutationObserver(initPokemon);
 
         observer.observe(document.documentElement, {
@@ -517,12 +533,6 @@
         });
     }
 
-    // Support execution before or after the DOM is ready
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", start, {
-            once: true
-        });
-    } else {
-        start();
-    }
+    // Initialize immediately instead of waiting for DOMContentLoaded
+    start();
 })();

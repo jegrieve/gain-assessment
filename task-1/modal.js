@@ -650,6 +650,7 @@
     // Inject CSS for console testing
     // TODO: Move CSS into modal.css before submission
 
+
     const style = document.createElement("style");
     style.id = "gain-questionnaire-styles";
     
@@ -729,7 +730,7 @@
             min-width: 0;
         }
     
-        /* Lines connecting circles */
+        /* Connecting lines: fill blue from left to right */
         .gain-progress-item:not(:first-child)::before {
             content: "";
             position: absolute;
@@ -737,13 +738,20 @@
             right: 50%;
             width: 100%;
             height: 4px;
-            background: #ddd;
+            background: linear-gradient(
+                to right,
+                #5579ce 50%,
+                #ddd 50%
+            );
+            background-size: 200% 100%;
+            background-position: right center;
+            transition: background-position 350ms ease;
         }
     
-        /* Blue lines for completed progress */
+        /* Fill the line when its step becomes active or completed */
         .gain-progress-item.is-active::before,
         .gain-progress-item.is-complete::before {
-            background: #5579ce;
+            background-position: left center;
         }
     
         /* Default circles */
@@ -761,6 +769,12 @@
             z-index: 1;
             background: white;
             color: #777;
+    
+            /* Smooth transition between step states */
+            transition:
+                background-color 250ms ease,
+                border-color 250ms ease,
+                color 250ms ease;
         }
     
         /* Active and completed circles */
@@ -799,8 +813,39 @@
             box-sizing: border-box;
         }
     
+        /* Pop the green checkmark into view */
         .is-complete .gain-progress-check {
             display: flex;
+            animation: gain-check-pop 250ms ease-out both;
+        }
+    
+        @keyframes gain-check-pop {
+            0% {
+                opacity: 0;
+                transform: scale(0.4);
+            }
+    
+            70% {
+                opacity: 1;
+                transform: scale(1.15);
+            }
+    
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    
+        /* Respect reduced-motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .gain-progress-circle,
+            .gain-progress-item:not(:first-child)::before {
+                transition: none;
+            }
+    
+            .is-complete .gain-progress-check {
+                animation: none;
+            }
         }
     
         /* Hide inactive questionnaire steps */
@@ -1060,15 +1105,15 @@
     
         /*
          * Focus overlay:
-         * A complete rectangular 4px blue border above the button.
-         * It is independent of the button's pixelated corner decorations.
+         * White outer edge with blue inner border.
+         * Independent of the pixelated corner decorations.
          */
         #gain-questionnaire-section .gain-button-wrap:has(> button:focus-visible)::after {
             content: "";
             position: absolute;
             inset: 0;
             border: 2px solid white;
-            box-shadow: inset 0 0 0 2px #2b46b7;
+            box-shadow: inset 0 0 0 3px #2b46b7;
             box-sizing: border-box;
             pointer-events: none;
             z-index: 10;
@@ -1129,7 +1174,7 @@
     
         /*
          * Focus — blue replaces the normal black border.
-         * The wrapper overlay completes the blue rectangle at the corners.
+         * The wrapper overlay completes the rectangle at the corners.
          */
         #gain-questionnaire-section .gain-button-wrap > button:focus-visible {
             background-color: #44632d;

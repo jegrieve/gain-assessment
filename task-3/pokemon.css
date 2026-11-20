@@ -1,0 +1,185 @@
+/* Hide original articles before and after React initializes */
+#archive-listing ul.list-reset.grid {
+    display: none !important;
+}
+
+/* Hide incomplete pagination during initial loading */
+#archive-listing:not(.gain-pokemon-loaded) nav.m-y-40 {
+    visibility: hidden;
+}
+
+/*
+    * Hide the original Tags and Capability filters.
+    * Our Pokémon type dropdown replaces Capability.
+    */
+.listing-filters select[name="post_tag"],
+.listing-filters select[name="capability"] {
+    display: none !important;
+}
+
+/* Pokémon grid using Flexbox */
+#gain-pokemon-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Pokémon cards */
+#gain-pokemon-grid .gain-pokemon-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 calc((100% - 48px) / 3);
+    min-width: 0;
+    height: 360px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+#gain-pokemon-grid .gain-pokemon-card[hidden] {
+    display: none !important;
+}
+
+#gain-pokemon-grid .gain-pokemon-card:focus-visible {
+    outline: 3px solid #2b46b7;
+    outline-offset: 3px;
+}
+
+/* 3D flip animation */
+#gain-pokemon-grid .gain-pokemon-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 500ms ease;
+}
+
+#gain-pokemon-grid .gain-pokemon-card.is-flipped .gain-pokemon-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Front and back of card */
+#gain-pokemon-grid .gain-pokemon-card-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+#gain-pokemon-grid .gain-pokemon-card-back {
+    justify-content: center;
+    gap: 12px;
+    transform: rotateY(180deg);
+    overflow-y: auto;
+}
+
+#gain-pokemon-grid .gain-pokemon-card-back p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+/* Pokémon artwork */
+#gain-pokemon-grid .gain-pokemon-card img {
+    display: block;
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    object-position: center;
+}
+
+/* Pokémon name */
+#gain-pokemon-grid .gain-pokemon-card h2 {
+    margin: 16px 0;
+    font-size: 24px;
+    line-height: 1.3;
+}
+
+/* Pokémon type badges */
+#gain-pokemon-grid .gain-pokemon-types {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+}
+
+#gain-pokemon-grid .gain-pokemon-types span {
+    padding: 6px 12px;
+    background: #eee;
+    border-radius: 20px;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+/* No-results message */
+#gain-pokemon-grid .gain-pokemon-empty {
+    flex-basis: 100%;
+    margin: 24px 0;
+    text-align: center;
+    font-size: 18px;
+    color: #555;
+}
+
+/* Loading skeleton cards */
+#gain-pokemon-grid .gain-pokemon-card--loading {
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    cursor: default;
+}
+
+#gain-pokemon-grid .gain-pokemon-image-placeholder {
+    width: 100%;
+    height: 200px;
+    border-radius: 8px;
+    background: #f0f0f0;
+}
+
+#gain-pokemon-grid .gain-pokemon-title-placeholder {
+    width: 60%;
+    height: 24px;
+    border-radius: 6px;
+    background: #f0f0f0;
+}
+
+#gain-pokemon-grid .gain-pokemon-tag-placeholder {
+    width: 40%;
+    height: 28px;
+    border-radius: 20px;
+    background: #f0f0f0;
+}
+
+/* Tablet: two cards per row */
+@media (max-width: 1023px) {
+    #gain-pokemon-grid .gain-pokemon-card {
+        flex-basis: calc((100% - 24px) / 2);
+    }
+}
+
+/* Mobile: one card per row */
+@media (max-width: 639px) {
+    #gain-pokemon-grid .gain-pokemon-card {
+        flex-basis: 100%;
+    }
+}
+
+/* Accessibility: respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    #gain-pokemon-grid .gain-pokemon-card-inner {
+        transition: none;
+    }
+}

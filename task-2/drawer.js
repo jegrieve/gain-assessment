@@ -311,6 +311,19 @@
             visibility: visible;
             pointer-events: auto;
         }
+            /* Tablet: two cards per view */
+@media (max-width: 1023px) {
+    #gain-footer-drawer .gain-drawer-card {
+        flex-basis: calc((100% - 16px) / 2);
+    }
+}
+
+/* Mobile: one card per view */
+@media (max-width: 639px) {
+    #gain-footer-drawer .gain-drawer-card {
+        flex-basis: 100%;
+    }
+}
     `;
 
     document.head.append(style);

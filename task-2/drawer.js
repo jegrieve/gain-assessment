@@ -352,6 +352,9 @@
 
     let currentPage = 0;
 
+    // Lock pagination during animated arrow navigation
+    let isNavigating = false;
+
     // Determine how many cards fit on each page
     function getCardsPerPage() {
         if (window.innerWidth <= 639) return 1;
@@ -385,8 +388,22 @@
         const gap = parseFloat(getComputedStyle(content).gap) || 0;
         const cardWidth = firstCard.getBoundingClientRect().width;
 
+        const targetLeft =
+            currentPage * getCardsPerPage() * (cardWidth + gap);
+
+        const maxScroll = Math.max(
+            0,
+            content.scrollWidth - content.clientWidth
+        );
+
+        // Lock the counter while the carousel animates
+        isNavigating =
+            Math.abs(
+                content.scrollLeft - Math.min(targetLeft, maxScroll)
+            ) > 1;
+
         content.scrollTo({
-            left: currentPage * getCardsPerPage() * (cardWidth + gap),
+            left: targetLeft,
             behavior: "smooth"
         });
 
@@ -406,24 +423,39 @@
 
     // Update pagination when scrolling or swiping manually
     content.addEventListener("scroll", () => {
+        // Ignore intermediate positions during arrow navigation
+        if (isNavigating) return;
+
         const firstCard = content.querySelector(".gain-drawer-card");
         if (!firstCard) return;
 
         const gap = parseFloat(getComputedStyle(content).gap) || 0;
 
         const pageWidth =
-            getCardsPerPage() * (firstCard.getBoundingClientRect().width + gap);
+            getCardsPerPage() *
+            (firstCard.getBoundingClientRect().width + gap);
 
         const maxScroll = content.scrollWidth - content.clientWidth;
 
         if (maxScroll > 0 && content.scrollLeft >= maxScroll - 2) {
             currentPage = getTotalPages() - 1;
         } else {
-            currentPage = Math.round(content.scrollLeft / pageWidth);
+            currentPage = Math.max(
+                0,
+                Math.min(
+                    Math.round(content.scrollLeft / pageWidth),
+                    getTotalPages() - 1
+                )
+            );
         }
 
         updateNavigation();
     }, { passive: true });
+
+    // Unlock pagination when smooth scrolling finishes
+    content.addEventListener("scrollend", () => {
+        isNavigating = false;
+    });
 
     // Close the tooltip when navigating between cards
     content.addEventListener("scroll", hideTooltip, { passive: true });
@@ -436,6 +468,9 @@
     let wasDragged = false;
 
     content.addEventListener("pointerdown", (event) => {
+        // Manual interaction should unlock pagination immediately
+        isNavigating = false;
+
         if (event.pointerType !== "mouse" || event.button !== 0) return;
 
         isPointerDown = true;
@@ -445,6 +480,11 @@
         startX = event.clientX;
         startScrollLeft = content.scrollLeft;
     });
+
+    // Allow manual trackpad and wheel scrolling to update pagination
+    content.addEventListener("wheel", () => {
+        isNavigating = false;
+    }, { passive: true });
 
     content.addEventListener("pointermove", (event) => {
         if (!isPointerDown) return;
@@ -500,6 +540,7 @@
     // Reset pagination when the viewport changes
     window.addEventListener("resize", () => {
         hideTooltip();
+        isNavigating = false;
         goToPage(0);
     });
 

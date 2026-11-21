@@ -338,6 +338,11 @@
         image.loading = "lazy";
         image.draggable = false;
 
+        // Clip the subtle image zoom within the image frame
+        const imageFrame = document.createElement("div");
+        imageFrame.className = "gain-drawer-image-frame";
+        imageFrame.append(image);
+
         const title = document.createElement("h3");
         title.textContent = study.title;
 
@@ -412,7 +417,7 @@
         link.href = study.url;
         link.textContent = "View case study";
 
-        card.append(image, title, tagWrapper, description, link);
+        card.append(imageFrame, title, tagWrapper, description, link);
         content.append(card);
     });
 
@@ -477,7 +482,9 @@
 
         content.scrollTo({
             left: targetLeft,
-            behavior: "smooth"
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "auto"
+                : "smooth"
         });
 
         // Fallback if scrollend does not fire - Does not fire in certain browsers
@@ -861,6 +868,18 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             scroll-snap-align: start;
+            transition: transform 220ms ease,
+                        box-shadow 220ms ease,
+                        border-color 220ms ease;
+        }
+
+        /* Keep the image zoom inside the original image bounds */
+        #gain-footer-drawer .gain-drawer-image-frame {
+            width: 100%;
+            height: 120px;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         #gain-footer-drawer .gain-drawer-card img {
@@ -868,6 +887,20 @@
             height: 120px;
             object-fit: cover;
             border-radius: 4px;
+            transition: transform 250ms ease;
+        }
+
+        /* Subtle interaction feedback, without affecting touch swipe */
+        @media (hover: hover) {
+            #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover {
+                transform: translateY(-3px);
+                border-color: #cbd4e0;
+                box-shadow: 0 7px 18px rgba(0, 0, 0, 0.12);
+            }
+
+            #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover img {
+                transform: scale(1.045);
+            }
         }
 
         #gain-footer-drawer .gain-drawer-card h3 {
@@ -875,6 +908,7 @@
             font-size: 16px;
             line-height: 1.3;
         }
+
         /* Keep card titles aligned across desktop sizes */
         @media (min-width: 1024px) {
             #gain-footer-drawer .gain-drawer-card h3 {
@@ -927,8 +961,10 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+            transform: translateY(4px);
             transition: opacity 150ms ease,
-                        visibility 150ms ease;
+                        visibility 150ms ease,
+                        transform 150ms ease;
         }
 
         /* Triangle pointing down toward the tag */
@@ -951,9 +987,14 @@
         }
 
         /* Show the positioned tooltip */
+        #gain-footer-drawer .gain-drawer-tooltip.is-below {
+            transform: translateY(-4px);
+        }
+
         #gain-footer-drawer .gain-drawer-tooltip.is-visible {
             opacity: 1;
             visibility: visible;
+            transform: translateY(0);
         }
 
         #gain-footer-drawer .gain-drawer-card p {
@@ -1037,6 +1078,29 @@
         @media (max-width: 639px) {
             #gain-footer-drawer .gain-drawer-card {
                 flex-basis: 100%;
+            }
+        }
+
+        /* Respect users who prefer less motion */
+        @media (prefers-reduced-motion: reduce) {
+            #gain-footer-drawer,
+            #gain-footer-drawer .gain-drawer-chevron svg,
+            #gain-footer-drawer .gain-drawer-card,
+            #gain-footer-drawer .gain-drawer-card img,
+            #gain-footer-drawer .gain-drawer-card a,
+            #gain-footer-drawer .gain-drawer-tooltip,
+            #gain-drawer-overlay {
+                transition: none;
+            }
+
+            #gain-drawer-content {
+                scroll-behavior: auto;
+            }
+
+            #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover,
+            #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover img,
+            #gain-footer-drawer .gain-drawer-tooltip {
+                transform: none;
             }
         }
     `;

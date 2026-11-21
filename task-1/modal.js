@@ -234,20 +234,32 @@
             <div id="gain-results-content"></div>
 
             <div id="gain-results-summary">
-                <h3>Your answers</h3>
-
-                <p>
-                    <strong>Services:</strong>
-                    <span id="gain-summary-services"></span>
-                </p>
-                <button id="gain-edit-services" type="button">Edit services</button>
-
-                <p>
-                    <strong>Industries:</strong>
-                    <span id="gain-summary-industries"></span>
-                </p>
-                <button id="gain-edit-industries" type="button">Edit industries</button>
+            <h3>Your answers</h3>
+        
+            <div class="gain-summary-scroll-area"
+                 tabindex="0"
+                 aria-label="Your selected services and industries">
+        
+                <div class="gain-summary-group">
+                    <div class="gain-summary-heading">
+                        <strong>Services</strong>
+                        <button id="gain-edit-services" type="button">Edit services</button>
+                    </div>
+                    <div id="gain-summary-services" class="gain-summary-chips"></div>
+                </div>
+        
+                <div class="gain-summary-group">
+                    <div class="gain-summary-heading">
+                        <strong>Industries</strong>
+                        <button id="gain-edit-industries" type="button">Edit industries</button>
+                    </div>
+                    <div id="gain-summary-industries" class="gain-summary-chips"></div>
+                </div>
+        
             </div>
+        </div>
+        
+        
         </div>
 
         <div class="gain-modal-actions">
@@ -527,7 +539,7 @@
                 emailContainer.className = "gain-email-container";
                 
                 const emailHeading = document.createElement("h3");
-                emailHeading.textContent = "Ready to talk?";
+                emailHeading.textContent = "Email Us";
                 
                 emailContainer.append(emailHeading, emailLink);
                 content.append(emailContainer);
@@ -558,12 +570,23 @@
             addArticles(content);
         }
 
-        // Show selected services and industries in the results summary
-        modal.querySelector("#gain-summary-services").textContent =
-            selectedServices.join(", ");
 
-        modal.querySelector("#gain-summary-industries").textContent =
-            selectedIndustries.join(", ");
+        function renderSummaryChips(selector, values) {
+            const container = modal.querySelector(selector);
+            container.replaceChildren();
+        
+            values.forEach(value => {
+                const chip = document.createElement("span");
+                chip.className = "gain-summary-chip";
+                chip.textContent = value;
+        
+                container.append(chip);
+            });
+        }
+        
+        renderSummaryChips("#gain-summary-services", selectedServices);
+        renderSummaryChips("#gain-summary-industries", selectedIndustries);
+        
     }
 
     // Next and Back navigation
@@ -677,6 +700,9 @@
 
     // Inject CSS for console testing
     // TODO: Move CSS into modal.css before submission
+
+
+
 
 
     const style = document.createElement("style");
@@ -968,13 +994,6 @@
             background-color: #f2f6ff;
         }
     
-        /* Selected answer highlights */
-        #gain-questionnaire-modal #gain-service-options label:has(input:checked),
-        #gain-questionnaire-modal #gain-industry-options label:has(input:checked),
-        #gain-questionnaire-modal #gain-step-3 label:has(input:checked),
-        #gain-questionnaire-modal #gain-step-4 label:has(input:checked) {
-            background-color: #e7efff;
-        }
     
         /* Checkbox and radio appearance */
         #gain-questionnaire-modal input[type="checkbox"],
@@ -1067,43 +1086,94 @@
             font-size: 18px;
         }
     
-        /* Results summary container */
+        /* Results summary card */
         #gain-results-summary {
             margin-top: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 12px;
+            padding: 16px;
+            border: 1px solid #dfe5ec;
+            border-radius: 10px;
+            background: #f9fafb;
         }
     
         #gain-results-summary h3 {
-            margin-bottom: 12px;
+            margin: 0 0 12px;
+            color: #253246;
         }
     
-        #gain-results-summary p {
-            line-height: 1.6;
-            margin-bottom: 6px;
+        /* Each group keeps its Edit button aligned with the label */
+        #gain-results-summary .gain-summary-group {
+            min-width: 0;
+            padding: 12px 0;
+            border-top: 1px solid #e3e8ef;
         }
     
-        /* Edit buttons */
+        #gain-results-summary .gain-summary-group:last-child {
+            padding-bottom: 0;
+        }
+    
+        #gain-results-summary .gain-summary-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+    
+        #gain-results-summary .gain-summary-heading strong {
+            margin: 0;
+            color: #333;
+            font-size: 14px;
+        }
+    
+        /* Selected answers wrap naturally as small chips */
+        #gain-results-summary .gain-summary-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-width: 0;
+        }
+    
+        #gain-results-summary .gain-summary-chip {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 5px 9px;
+            border: 1px solid #e1e6ed;
+            border-radius: 6px;
+            background: white;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+    
+        /* Right-aligned underlined Edit buttons */
         #gain-edit-services,
         #gain-edit-industries {
+            margin: 0;
+            padding: 0;
+            flex-shrink: 0;
+            border: none;
             background: transparent;
             color: #5579ce;
-            border: none;
-            padding: 0;
             cursor: pointer;
-            margin-bottom: 12px;
-            font-size: 14px;
-            margin-top: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
     
         #gain-edit-services:hover,
         #gain-edit-industries:hover {
-            text-decoration: underline;
+            color: #3f62b0;
         }
     
         #gain-edit-services:focus-visible,
         #gain-edit-industries:focus-visible {
             outline: 2px solid #5579ce;
+            outline-offset: 3px;
+            border-radius: 2px;
         }
     
         /* Results list spacing */
@@ -1137,17 +1207,6 @@
             color: #217a3c;
         }
     
-        /* Services / Industries labels */
-        #gain-results-summary strong {
-            color: #333;
-            margin-right: 6px;
-        }
-    
-        /* Selected answers */
-        #gain-results-summary p span {
-            color: #555;
-        }
-    
         /* Email icon and link */
         #gain-results-content .gain-email-link {
             display: inline-flex;
@@ -1167,7 +1226,7 @@
             border: 1px solid #cad9f4;
             border-radius: 10px;
         }
-
+    
         #gain-results-content .gain-email-container h3 {
             margin: 0 0 12px;
             color: #253d70;
@@ -1224,7 +1283,7 @@
             line-height: 1.5;
             overflow-wrap: anywhere;
         }
-
+    
         #gain-results-content .gain-recommendations-container > .gain-recommendations-description {
             padding: 0 16px 14px;
             margin: 0;
@@ -1513,30 +1572,24 @@
             }
         }
     
-
-        /* Compact and scrollable recommendations on smaller screens */
-        @media (max-width: 600px) {
+        /* Compact recommendation cards on tablet and smaller screens */
+        @media (max-width: 900px) {
             #gain-results-content .gain-recommendations-container {
-                min-width: 0;
                 overflow: hidden;
             }
-
-            /* Tighter heading */
+    
             #gain-results-content .gain-recommendations-container > h3 {
-                padding: 12px 12px 4px;
-                font-size: 16px;
+                padding: 12px 14px 5px;
+                font-size: 17px;
             }
-
-            /* Tighter description */
+    
             #gain-results-content .gain-recommendations-container > .gain-recommendations-description {
-                padding: 0 12px 10px;
-                font-size: 12px;
-                line-height: 1.4;
+                padding: 0 14px 12px;
+                font-size: 13px;
             }
-
-            /* Shorter scrollable area */
+    
             #gain-results-content .gain-recommendations-list {
-                max-height: min(170px, 30dvh);
+                max-height: min(200px, 32dvh);
                 overflow-y: auto;
                 overflow-x: hidden;
                 overscroll-behavior: contain;
@@ -1545,39 +1598,148 @@
                 scrollbar-width: thin;
                 scrollbar-color: #cad9f4 transparent;
             }
-
-            /* More compact cards */
+    
             #gain-results-content .gain-recommendations-list .gain-recommendation-card {
-                padding: 10px 12px;
+                padding: 11px 12px;
                 gap: 6px 8px;
             }
-
-            /* Allow titles and badges to share a row where possible */
+    
             #gain-results-content .gain-recommendation-card a {
-                flex: 1 1 130px;
+                flex: 1 1 140px;
                 font-size: 14px;
                 line-height: 1.35;
             }
-
-            /* Smaller match badges */
+    
             #gain-results-content .gain-recommendation-card span {
                 font-size: 11px;
                 padding: 3px 6px;
                 margin-left: auto;
             }
-
-            /* Subtle scroll hint when there are 3 cards */
-            #gain-results-content .gain-recommendations-container:has(.gain-recommendation-card:nth-child(3))::after {
-                content: "Scroll to see more ↓";
-                display: block;
-                padding: 0 12px 10px;
-                color: #687385;
-                font-size: 11px;
-                text-align: center;
+        
+            /* Match the contact panel to compact recommendation typography */
+            #gain-results-content .gain-email-container {
+                padding: 14px;
+            }
+    
+            #gain-results-content .gain-email-container h3 {
+                font-size: 17px;
+                margin-bottom: 8px;
+            }
+    
+            #gain-results-content .gain-email-container .gain-email-link {
+                padding: 10px 12px;
+                gap: 8px;
+                font-size: 14px;
+            }
+    
+            /* Match the answers summary to compact recommendation typography */
+            #gain-results-summary {
+                padding: 14px;
+            }
+    
+            #gain-results-summary h3 {
+                font-size: 17px;
+                margin-bottom: 10px;
+            }
+    
+            #gain-results-summary .gain-summary-heading strong {
+                font-size: 13px;
+            }
+    
+            #gain-edit-services,
+            #gain-edit-industries {
+                font-size: 12px;
+            }
+    
+            #gain-results-summary .gain-summary-chip {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+    
+            /* Keep long answer summaries compact */
+            #gain-results-summary {
+                display: flex;
+                flex-direction: column;
+                max-height: min(300px, 40dvh);
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+    
+            /* Scroll answers within the card */
+            #gain-results-summary > h3 {
+                flex-shrink: 0;
+            }
+    
+            #gain-results-summary .gain-summary-scroll-area {
+                min-height: 0;
+                padding-right: 12px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: #cad9f4 transparent;
             }
         }
-
-
+    
+        /* Tighter version for mobile */
+        @media (max-width: 600px) {
+            #gain-results-content .gain-recommendations-container > h3 {
+                padding: 12px 12px 4px;
+                font-size: 16px;
+            }
+    
+            #gain-results-content .gain-recommendations-container > .gain-recommendations-description {
+                padding: 0 12px 10px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+    
+            #gain-results-content .gain-recommendations-list {
+                max-height: min(170px, 30dvh);
+            }
+    
+            #gain-results-content .gain-recommendations-list .gain-recommendation-card {
+                padding: 10px 12px;
+            }
+    
+            #gain-results-content .gain-recommendation-card a {
+                flex: 1 1 130px;
+            }
+    
+            #gain-results-summary {
+                padding: 12px;
+            }
+    
+            #gain-results-summary .gain-summary-chip {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+    
+            /* Match headings and email text to compact mobile recommendations */
+            #gain-results-content .gain-email-container {
+                padding: 12px;
+            }
+    
+            #gain-results-content .gain-email-container h3,
+            #gain-results-summary h3 {
+                font-size: 16px;
+            }
+    
+            #gain-results-content .gain-email-container .gain-email-link {
+                font-size: 13px;
+            }
+    
+            #gain-results-summary .gain-summary-heading strong {
+                font-size: 12px;
+            }
+    
+            /* Shorter answer summary on mobile */
+            #gain-results-summary {
+                max-height: min(220px, 35dvh);
+            }
+        }
+    
         /* Respect reduced-motion preferences */
         @media (prefers-reduced-motion: reduce) {
             #gain-questionnaire-modal[open],
@@ -1598,8 +1760,9 @@
             }
         }
     `;
-
+    
     document.head.append(style);
+    
 
     }
 })();

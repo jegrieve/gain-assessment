@@ -1,3 +1,9 @@
+
+/* ============================================================
+   1. DRAWER SHELL AND POSITIONING
+   ============================================================ */
+
+/* Footer drawer: fixed to the bottom of the viewport */
 #gain-footer-drawer {
     position: fixed;
     bottom: 0;
@@ -8,7 +14,6 @@
     flex-direction: column;
     align-items: center;
     pointer-events: none;
-
     transform: translateY(calc(100% - 52px));
     transition: transform 350ms ease;
 }
@@ -17,6 +22,10 @@
 #gain-footer-drawer.is-open {
     transform: translateY(0);
 }
+
+/* ============================================================
+   2. TAB, TOGGLE BUTTONS AND PAGINATION
+   ============================================================ */
 
 /* Top tab with toggle buttons and inline pagination */
 #gain-footer-drawer .gain-drawer-tab {
@@ -129,6 +138,10 @@
     white-space: nowrap;
 }
 
+/* ============================================================
+   3. CAROUSEL AND CARD LAYOUT
+   ============================================================ */
+
 /* Horizontally scrollable case-study container */
 #gain-drawer-content {
     display: flex;
@@ -171,6 +184,18 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     scroll-snap-align: start;
+    transition: transform 220ms ease,
+                box-shadow 220ms ease,
+                border-color 220ms ease;
+}
+
+/* Keep the image zoom inside the original image bounds */
+#gain-footer-drawer .gain-drawer-image-frame {
+    width: 100%;
+    height: 120px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 #gain-footer-drawer .gain-drawer-card img {
@@ -178,6 +203,20 @@
     height: 120px;
     object-fit: cover;
     border-radius: 4px;
+    transition: transform 250ms ease;
+}
+
+/* Subtle interaction feedback, without affecting touch swipe */
+@media (hover: hover) {
+    #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover {
+        transform: translateY(-3px);
+        border-color: #cbd4e0;
+        box-shadow: 0 7px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover img {
+        transform: scale(1.045);
+    }
 }
 
 #gain-footer-drawer .gain-drawer-card h3 {
@@ -185,6 +224,7 @@
     font-size: 16px;
     line-height: 1.3;
 }
+
 /* Keep card titles aligned across desktop sizes */
 @media (min-width: 1024px) {
     #gain-footer-drawer .gain-drawer-card h3 {
@@ -197,6 +237,10 @@
         min-height: 2.6em;
     }
 }
+
+/* ============================================================
+   4. INDUSTRY TAGS AND TOOLTIPS
+   ============================================================ */
 
 /* Container for the industry tag */
 #gain-footer-drawer .gain-drawer-tag-wrapper {
@@ -233,12 +277,13 @@
     line-height: 1.5;
     overflow-wrap: anywhere;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    transform: translateY(4px);
     transition: opacity 150ms ease,
-                visibility 150ms ease;
+                visibility 150ms ease,
+                transform 150ms ease;
 }
 
 /* Triangle pointing down toward the tag */
@@ -261,10 +306,19 @@
 }
 
 /* Show the positioned tooltip */
+#gain-footer-drawer .gain-drawer-tooltip.is-below {
+    transform: translateY(-4px);
+}
+
 #gain-footer-drawer .gain-drawer-tooltip.is-visible {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
 }
+
+/* ============================================================
+   5. CARD TEXT AND CASE-STUDY LINKS
+   ============================================================ */
 
 #gain-footer-drawer .gain-drawer-card p {
     margin: 0;
@@ -316,6 +370,10 @@
     outline-offset: 3px;
 }
 
+/* ============================================================
+   6. BACKGROUND OVERLAY
+   ============================================================ */
+
 /* Background overlay behind the drawer */
 #gain-drawer-overlay {
     position: fixed;
@@ -336,6 +394,10 @@
     pointer-events: auto;
 }
 
+/* ============================================================
+   7. RESPONSIVE CARD COUNTS
+   ============================================================ */
+
 /* Tablet: two cards per view */
 @media (max-width: 1023px) {
     #gain-footer-drawer .gain-drawer-card {
@@ -347,5 +409,32 @@
 @media (max-width: 639px) {
     #gain-footer-drawer .gain-drawer-card {
         flex-basis: 100%;
+    }
+}
+
+/* ============================================================
+   8. REDUCED MOTION AND ACCESSIBILITY
+   ============================================================ */
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+    #gain-footer-drawer,
+    #gain-footer-drawer .gain-drawer-chevron svg,
+    #gain-footer-drawer .gain-drawer-card,
+    #gain-footer-drawer .gain-drawer-card img,
+    #gain-footer-drawer .gain-drawer-card a,
+    #gain-footer-drawer .gain-drawer-tooltip,
+    #gain-drawer-overlay {
+        transition: none;
+    }
+
+    #gain-drawer-content {
+        scroll-behavior: auto;
+    }
+
+    #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover,
+    #gain-drawer-content:not(.is-dragging) .gain-drawer-card:hover img,
+    #gain-footer-drawer .gain-drawer-tooltip {
+        transform: none;
     }
 }

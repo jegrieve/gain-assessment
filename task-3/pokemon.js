@@ -48,7 +48,10 @@
         container.setAttribute("aria-busy", "true");
 
         container.innerHTML = Array.from({ length: 12 }, () => `
-            <article class="gain-pokemon-card gain-pokemon-card--loading" aria-hidden="true">
+            <article
+                class="gain-pokemon-card gain-pokemon-card--loading"
+                aria-hidden="true"
+            >
                 <div class="gain-pokemon-image-placeholder"></div>
                 <div class="gain-pokemon-title-placeholder"></div>
                 <div class="gain-pokemon-tag-placeholder"></div>
@@ -71,12 +74,11 @@
 
         cards.forEach(card => {
             const types = Array.from(
-                card.querySelectorAll(".gain-pokemon-types span"),
-                span => span.textContent.trim().toLowerCase()
+                card.querySelectorAll(".gain-pokemon-types li"),
+                item => item.textContent.trim().toLowerCase()
             );
 
             const matches = !selectedType || types.includes(selectedType);
-
             card.hidden = !matches;
 
             if (matches) visibleCount++;
@@ -134,7 +136,7 @@
 
                 return `
                     <article
-                        class="gain-pokemon-card"
+                        class="gain-pokemon-card listing-box"
                         role="button"
                         tabindex="0"
                         aria-label="Show details for ${name}"
@@ -143,19 +145,28 @@
                         <div class="gain-pokemon-card-inner">
 
                             <div class="gain-pokemon-card-face gain-pokemon-card-front">
-                                <img
-                                    src="${image}"
-                                    alt="${name}"
-                                    loading="lazy"
-                                >
 
-                                <h2>${name}</h2>
-
-                                <div class="gain-pokemon-types">
-                                    ${p.types.map(type => `
-                                        <span>${escapeHtml(type.type.name)}</span>
-                                    `).join("")}
+                                <div class="listing-box__media listing-box__media--post gain-pokemon-media">
+                                    <img
+                                        class="listing-box__image"
+                                        src="${image}"
+                                        alt="${name}"
+                                        loading="lazy"
+                                    />
                                 </div>
+
+                                <h2 class="listing-box__title has-inter-tight-font-family has-body-xl-font-size">
+                                    ${name}
+                                </h2>
+
+                                <ul class="content-tags gain-pokemon-types">
+                                    ${p.types.map(type => `
+                                        <li data-type="${escapeHtml(type.type.name)}">
+                                            ${escapeHtml(type.type.name)}
+                                        </li>
+                                    `).join("")}
+                                </ul>
+
                             </div>
 
                             <div
@@ -164,10 +175,25 @@
                             >
                                 <h2>${name}</h2>
 
-                                <p><strong>Pokédex:</strong> #${escapeHtml(p.id)}</p>
-                                <p><strong>Height:</strong> ${p.height / 10} m</p>
-                                <p><strong>Weight:</strong> ${p.weight / 10} kg</p>
-                                <p><strong>Abilities:</strong> ${abilities}</p>
+                                <p>
+                                    <strong>Pokédex:</strong>
+                                    #${escapeHtml(p.id)}
+                                </p>
+
+                                <p>
+                                    <strong>Height:</strong>
+                                    ${p.height / 10} m
+                                </p>
+
+                                <p>
+                                    <strong>Weight:</strong>
+                                    ${p.weight / 10} kg
+                                </p>
+
+                                <p>
+                                    <strong>Abilities:</strong>
+                                    ${abilities}
+                                </p>
                             </div>
 
                         </div>
@@ -260,29 +286,46 @@
                 display: none !important;
             }
 
-            /* Pokémon grid using Flexbox */
+            /* Match GAIN's original 12-column article grid */
             #gain-pokemon-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 24px;
+                display: grid;
+                grid-template-columns: repeat(12, minmax(0, 1fr));
+                gap: 1rem;
                 width: 100%;
                 box-sizing: border-box;
             }
 
-            /* Pokémon cards */
+            /*
+             * Match GAIN's article cards.
+             * Proportional height rather than hardcoded pixels.
+             */
             #gain-pokemon-grid .gain-pokemon-card {
                 position: relative;
+                grid-column: span 4;
                 display: flex;
                 flex-direction: column;
-                flex: 0 0 calc((100% - 48px) / 3);
                 min-width: 0;
-                height: 360px;
+                aspect-ratio: 10 / 11;
+                height: auto;
                 box-sizing: border-box;
-                border: 1px solid #ddd;
-                border-radius: 12px;
-                background: white;
+                padding: var(--wp--preset--spacing--16, 1rem);
+                border: 1px solid var(--wp--custom--color--grey-light, #e3e3e5);
+                border-radius: 0;
+                background: var(--wp--preset--color--white, #fff);
                 perspective: 1000px;
                 cursor: pointer;
+
+                /*
+                 * Clip the rotating faces inside the card.
+                 * Prevents white surfaces crossing the outer border.
+                 */
+                overflow: clip;
+
+                /*
+                 * GAIN's original card hover movement is disabled.
+                 */
+                transform: none !important;
+                transition: border-color 200ms ease-in;
             }
 
             #gain-pokemon-grid .gain-pokemon-card[hidden] {
@@ -290,15 +333,17 @@
             }
 
             #gain-pokemon-grid .gain-pokemon-card:focus-visible {
-                outline: 3px solid #2b46b7;
+                outline: 3px solid var(--wp--preset--color--not-black, #001400);
                 outline-offset: 3px;
             }
 
-            /* 3D flip animation */
+            /* Rotate only the inner wrapper */
             #gain-pokemon-grid .gain-pokemon-card-inner {
                 position: relative;
+                flex: 1;
+                min-width: 0;
+                min-height: 0;
                 width: 100%;
-                height: 100%;
                 transform-style: preserve-3d;
                 transition: transform 500ms ease;
             }
@@ -307,123 +352,251 @@
                 transform: rotateY(180deg);
             }
 
-            /* Front and back of card */
+            /* Front and back stay inside the card's padding */
             #gain-pokemon-grid .gain-pokemon-card-face {
                 position: absolute;
                 inset: 0;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                padding: 20px;
                 box-sizing: border-box;
-                text-align: center;
                 backface-visibility: hidden;
                 -webkit-backface-visibility: hidden;
             }
 
+            /* Original article-style front */
+            #gain-pokemon-grid .gain-pokemon-card-front {
+                gap: var(--wp--preset--spacing--24, 1.5rem);
+            }
+
+            /* White 4:3 Pokémon artwork */
+            #gain-pokemon-grid .gain-pokemon-media {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 4 / 3;
+                flex-shrink: 0;
+                overflow: hidden;
+                background: #fff !important;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-media .listing-box__image {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 12px;
+                box-sizing: border-box;
+                background: #fff;
+            }
+
+            /* GAIN's article heading typography */
+            #gain-pokemon-grid .gain-pokemon-card .listing-box__title {
+                width: 75%;
+                margin: 0;
+                font-family: var(--wp--preset--font-family--inter-tight, sans-serif);
+                font-size: var(--wp--preset--font-size--body-xl, 1.5rem);
+                font-weight: 400;
+                line-height: 1.2;
+                letter-spacing: -0.017857em;
+                overflow-wrap: anywhere;
+            }
+
+            /* Original bottom-right content tags */
+            #gain-pokemon-grid .gain-pokemon-types {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                justify-content: flex-end;
+                margin: auto 0 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            #gain-pokemon-grid .gain-pokemon-types li {
+                text-transform: capitalize;
+            }
+
+            /*
+             * Clean centred back face.
+             * Its white background stays within the clipped card.
+             */
             #gain-pokemon-grid .gain-pokemon-card-back {
                 justify-content: center;
+                align-items: center;
                 gap: 12px;
+                padding: 20px;
+                text-align: center;
+                background: #fff;
+                color: var(--wp--preset--color--not-black, #001400);
                 transform: rotateY(180deg);
                 overflow-y: auto;
             }
 
+            #gain-pokemon-grid .gain-pokemon-card-back h2 {
+                margin: 0 0 4px;
+                max-width: 100%;
+                font-family: var(--wp--preset--font-family--inter-tight, sans-serif);
+                font-size: var(--wp--preset--font-size--body-xl, 1.5rem);
+                font-weight: 400;
+                line-height: 1.2;
+                letter-spacing: -0.017857em;
+                overflow-wrap: anywhere;
+            }
+
             #gain-pokemon-grid .gain-pokemon-card-back p {
                 margin: 0;
+                max-width: 100%;
                 font-size: 16px;
                 line-height: 1.4;
+                overflow-wrap: anywhere;
             }
 
-            /* Pokémon artwork */
-            #gain-pokemon-grid .gain-pokemon-card img {
-                display: block;
-                width: 100%;
-                height: 200px;
-                object-fit: contain;
-                object-position: center;
-            }
-
-            /* Pokémon name */
-            #gain-pokemon-grid .gain-pokemon-card h2 {
-                margin: 16px 0;
-                font-size: 24px;
-                line-height: 1.3;
-            }
-
-            /* Pokémon type badges */
-            #gain-pokemon-grid .gain-pokemon-types {
-                display: flex;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: auto;
-            }
-
-            #gain-pokemon-grid .gain-pokemon-types span {
-                padding: 6px 12px;
-                background: #eee;
-                border-radius: 20px;
-                font-size: 14px;
-                text-transform: capitalize;
+            #gain-pokemon-grid .gain-pokemon-card-back strong {
+                font-weight: 600;
             }
 
             /* No-results message */
             #gain-pokemon-grid .gain-pokemon-empty {
-                flex-basis: 100%;
+                grid-column: 1 / -1;
                 margin: 24px 0;
                 text-align: center;
                 font-size: 18px;
                 color: #555;
             }
 
-            /* Loading skeleton cards */
+            /* Loading skeletons */
             #gain-pokemon-grid .gain-pokemon-card--loading {
-                justify-content: center;
-                align-items: center;
-                gap: 16px;
-                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: stretch;
+                gap: 24px;
                 cursor: default;
             }
 
             #gain-pokemon-grid .gain-pokemon-image-placeholder {
                 width: 100%;
-                height: 200px;
-                border-radius: 8px;
+                aspect-ratio: 4 / 3;
+                flex-shrink: 0;
                 background: #f0f0f0;
             }
 
             #gain-pokemon-grid .gain-pokemon-title-placeholder {
                 width: 60%;
-                height: 24px;
-                border-radius: 6px;
+                height: 28px;
+                border-radius: 4px;
                 background: #f0f0f0;
             }
 
             #gain-pokemon-grid .gain-pokemon-tag-placeholder {
                 width: 40%;
                 height: 28px;
-                border-radius: 20px;
+                margin: auto 0 0 auto;
                 background: #f0f0f0;
             }
 
-            /* Tablet: two cards per row */
-            @media (max-width: 1023px) {
+            /* Match GAIN's responsive article columns */
+            @media (max-width: 767px) {
                 #gain-pokemon-grid .gain-pokemon-card {
-                    flex-basis: calc((100% - 24px) / 2);
+                    grid-column: span 6;
                 }
             }
 
-            /* Mobile: one card per row */
             @media (max-width: 639px) {
                 #gain-pokemon-grid .gain-pokemon-card {
-                    flex-basis: 100%;
+                    grid-column: span 12;
                 }
+            }
+
+            @media (max-width: 380px) {
+                #gain-pokemon-grid .gain-pokemon-card-back {
+                    padding: 16px;
+                    gap: 10px;
+                }
+
+                #gain-pokemon-grid .gain-pokemon-card-back p {
+                    font-size: 14px;
+                }
+            }
+
+            /* Subtle card appearance animation */
+            #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading) {
+                animation: gain-pokemon-appear 220ms ease-out both;
+            }
+
+            @keyframes gain-pokemon-appear {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            /*
+             * Stronger border without resizing the card.
+             * The inset shadow adds visual weight inside the 1px border.
+             */
+            @media (hover: hover) {
+                #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover {
+                    border-color: var(--wp--preset--color--not-black, #001400);
+                    box-shadow: inset 0 0 0 1px var(--wp--preset--color--not-black, #001400);
+                    transform: none !important;
+                }
+            }
+
+            /* Loading skeleton shimmer */
+            #gain-pokemon-grid .gain-pokemon-card--loading > div {
+                background: linear-gradient(
+                    90deg,
+                    #edf0f4 25%,
+                    #e0e6ee 50%,
+                    #edf0f4 75%
+                );
+                background-size: 200% 100%;
+                animation: gain-pokemon-shimmer 1.4s linear infinite;
+            }
+
+            @keyframes gain-pokemon-shimmer {
+                to { background-position: -200% 0; }
             }
 
             /* Accessibility: respect reduced-motion preferences */
             @media (prefers-reduced-motion: reduce) {
-                #gain-pokemon-grid .gain-pokemon-card-inner {
-                    transition: none;
+                #gain-pokemon-grid .gain-pokemon-card-inner,
+                #gain-pokemon-grid .gain-pokemon-card {
+                    transition: none !important;
+                    animation: none !important;
+                }
+
+                #gain-pokemon-grid .gain-pokemon-card--loading > div {
+                    animation: none !important;
+                }
+            }
+
+            /* Keep the card's existing dimensions */
+            #gain-pokemon-grid .gain-pokemon-card {
+                border-color: transparent;
+                box-shadow: none !important;
+                isolation: isolate;
+            }
+
+            /* Draw the 1px border above the rotating faces */
+            #gain-pokemon-grid .gain-pokemon-card::after {
+                content: "";
+                position: absolute;
+                inset: 0; /* Changed from -1px */
+                z-index: 10;
+                pointer-events: none;
+                border: 1px solid var(--wp--custom--color--grey-light, #e3e3e5);
+                transition: none;
+            }
+
+            /* Hover: darker border only, no added thickness or movement */
+            @media (hover: hover) {
+                #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover {
+                    border-color: transparent;
+                    box-shadow: none !important;
+                    transform: none !important;
+                }
+
+                #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover::after {
+                    border-color: var(--wp--preset--color--not-black, #001400);
                 }
             }
         `;
@@ -447,6 +620,8 @@
         // Wait until the original Capability dropdown exists
         if (!pokemonContainer || !capability) return;
 
+        dropdown.classList.add("gain-pokemon-filter-wrap");
+
         const existingSelect = document.querySelector("#gain-pokemon-type");
 
         // If React moved or replaced its filter row, keep ours in place
@@ -468,7 +643,15 @@
             "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
         ];
 
-        const select = document.createElement("select");
+        // Clone GAIN's Capability dropdown for identical styling
+        const select = capability.cloneNode(false);
+
+        select.removeAttribute("name");
+        select.removeAttribute("id");
+        select.removeAttribute("disabled");
+        select.removeAttribute("required");
+        select.style.removeProperty("display");
+
         select.id = "gain-pokemon-type";
         select.setAttribute("aria-label", "Filter Pokémon by type");
 
@@ -594,3 +777,4 @@
     // Initialize immediately instead of waiting for DOMContentLoaded
     start();
 })();
+

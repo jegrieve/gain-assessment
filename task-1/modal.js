@@ -76,7 +76,7 @@
     section.id = "gain-questionnaire-section";
 
     section.innerHTML = `
-        <h2>Find the right solution for you</h2>
+        <h2>Find the right solution for <span class="gain-heading-you">you</span></h2>
         <p>Answer a few questions to discover how we can help.</p>
 
         <div class="gain-button-wrap">
@@ -765,7 +765,15 @@
         #gain-questionnaire-section .gain-button-wrap > button {
             font-family: inherit;
         }
-    
+
+        /* Simple green underline beneath "you" */
+        #gain-questionnaire-section .gain-heading-you {
+            text-decoration: underline;
+            text-decoration-color: #517636;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 5px;
+        }
+            
         /* Close X in the top-right */
         #gain-close {
             position: absolute;

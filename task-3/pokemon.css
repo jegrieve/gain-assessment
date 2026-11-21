@@ -1,19 +1,31 @@
+
+/* ============================================================
+   1. ORIGINAL ARTICLE AND FILTER VISIBILITY
+   ============================================================ */
+
 /* Hide original articles before and after React initializes */
 #archive-listing ul.list-reset.grid {
     display: none !important;
 }
+
 /* Hide incomplete pagination during initial loading */
 #archive-listing:not(.gain-pokemon-loaded) nav.m-y-40 {
     visibility: hidden;
 }
+
 /*
-    * Hide the original Tags and Capability filters.
-    * Our Pokémon type dropdown replaces Capability.
-    */
+ * Hide the original Tags and Capability filters.
+ * Our Pokémon type dropdown replaces Capability.
+ */
 .listing-filters select[name="post_tag"],
 .listing-filters select[name="capability"] {
     display: none !important;
 }
+
+/* ============================================================
+   2. GRID, CARD LAYOUT AND VISIBLE BORDER
+   ============================================================ */
+
 /* Match GAIN's original 12-column article grid */
 #gain-pokemon-grid {
     display: grid;
@@ -22,10 +34,11 @@
     width: 100%;
     box-sizing: border-box;
 }
+
 /*
-    * Match GAIN's article cards.
-    * Height now grows naturally with content.
-    */
+ * Match GAIN's article cards.
+ * Height now grows naturally with content.
+ */
 #gain-pokemon-grid .gain-pokemon-card {
     position: relative;
     grid-column: span 4;
@@ -41,28 +54,51 @@
     background: var(--wp--preset--color--white, #fff);
     perspective: 1000px;
     cursor: pointer;
+
     /*
-        * Clip the rotating faces inside the card.
-        * Prevents white surfaces crossing the outer border.
-        */
+     * Clip the rotating faces inside the card.
+     * Prevents white surfaces crossing the outer border.
+     */
     overflow: clip;
-    /*
-        * GAIN's original card hover movement is disabled.
-        */
+
+    /* Disable GAIN's original card hover movement. */
     transform: none !important;
     transition: border-color 200ms ease-in;
+
+    /* Keep the visible border above the rotating faces. */
+    border-color: transparent;
+    box-shadow: none !important;
+    isolation: isolate;
 }
+
 #gain-pokemon-grid .gain-pokemon-card[hidden] {
     display: none !important;
 }
+
 #gain-pokemon-grid .gain-pokemon-card:focus-visible {
     outline: 3px solid var(--wp--preset--color--not-black, #001400);
     outline-offset: 3px;
 }
+
+/* Draw the 1px border above the rotating faces */
+#gain-pokemon-grid .gain-pokemon-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    border: 1px solid var(--wp--custom--color--grey-light, #e3e3e5);
+    transition: none;
+}
+
+/* ============================================================
+   3. CARD FACES, FLIP, ARTWORK AND TEXT
+   ============================================================ */
+
 /*
-    * Use CSS Grid to overlap the two faces while allowing
-    * their contents to determine the card's height.
-    */
+ * Use CSS Grid to overlap the two faces while allowing
+ * their contents to determine the card's height.
+ */
 #gain-pokemon-grid .gain-pokemon-card-inner {
     position: relative;
     display: grid;
@@ -73,13 +109,15 @@
     transform-style: preserve-3d;
     transition: transform 500ms ease;
 }
+
 #gain-pokemon-grid .gain-pokemon-card.is-flipped .gain-pokemon-card-inner {
     transform: rotateY(180deg);
 }
+
 /*
-    * Both faces occupy the same grid cell and
-    * contribute to natural card height.
-    */
+ * Both faces occupy the same grid cell and
+ * contribute to natural card height.
+ */
 #gain-pokemon-grid .gain-pokemon-card-face {
     position: relative;
     grid-area: 1 / 1;
@@ -90,10 +128,12 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }
+
 /* Original article-style front */
 #gain-pokemon-grid .gain-pokemon-card-front {
     gap: var(--wp--preset--spacing--24, 1.5rem);
 }
+
 /* White 4:3 Pokémon artwork */
 #gain-pokemon-grid .gain-pokemon-media {
     position: relative;
@@ -103,6 +143,7 @@
     overflow: hidden;
     background: #fff !important;
 }
+
 #gain-pokemon-grid .gain-pokemon-media .listing-box__image {
     width: 100%;
     height: 100%;
@@ -111,6 +152,7 @@
     box-sizing: border-box;
     background: #fff;
 }
+
 /* GAIN's article heading typography */
 #gain-pokemon-grid .gain-pokemon-card .listing-box__title {
     width: 75%;
@@ -122,10 +164,11 @@
     letter-spacing: -0.017857em;
     overflow-wrap: anywhere;
 }
+
 /*
-    * Bottom-right content tags.
-    * Multiple rows are allowed on narrow screens.
-    */
+ * Bottom-right content tags.
+ * Multiple rows are allowed on narrow screens.
+ */
 #gain-pokemon-grid .gain-pokemon-types {
     display: flex;
     flex-direction: row;
@@ -138,15 +181,17 @@
     padding: 0;
     list-style: none;
 }
+
 #gain-pokemon-grid .gain-pokemon-types li {
     flex-shrink: 0;
     max-width: 100%;
     text-transform: capitalize;
 }
+
 /*
-    * Clean centred back face.
-    * It shares the card's naturally calculated height.
-    */
+ * Clean centred back face.
+ * It shares the card's naturally calculated height.
+ */
 #gain-pokemon-grid .gain-pokemon-card-back {
     justify-content: center;
     align-items: center;
@@ -157,6 +202,7 @@
     color: var(--wp--preset--color--not-black, #001400);
     transform: rotateY(180deg);
 }
+
 #gain-pokemon-grid .gain-pokemon-card-back h2 {
     margin: 0 0 4px;
     max-width: 100%;
@@ -167,6 +213,7 @@
     letter-spacing: -0.017857em;
     overflow-wrap: anywhere;
 }
+
 #gain-pokemon-grid .gain-pokemon-card-back p {
     margin: 0;
     max-width: 100%;
@@ -174,9 +221,15 @@
     line-height: 1.4;
     overflow-wrap: anywhere;
 }
+
 #gain-pokemon-grid .gain-pokemon-card-back strong {
     font-weight: 600;
 }
+
+/* ============================================================
+   4. EMPTY AND LOADING STATES
+   ============================================================ */
+
 /* No-results message */
 #gain-pokemon-grid .gain-pokemon-empty {
     grid-column: 1 / -1;
@@ -185,6 +238,7 @@
     font-size: 18px;
     color: #555;
 }
+
 /* Loading skeletons */
 #gain-pokemon-grid .gain-pokemon-card--loading {
     display: flex;
@@ -194,63 +248,28 @@
     gap: 24px;
     cursor: default;
 }
+
 #gain-pokemon-grid .gain-pokemon-image-placeholder {
     width: 100%;
     aspect-ratio: 4 / 3;
     flex-shrink: 0;
     background: #f0f0f0;
 }
+
 #gain-pokemon-grid .gain-pokemon-title-placeholder {
     width: 60%;
     height: 28px;
     border-radius: 4px;
     background: #f0f0f0;
 }
+
 #gain-pokemon-grid .gain-pokemon-tag-placeholder {
     width: 40%;
     height: 28px;
     margin: auto 0 0 auto;
     background: #f0f0f0;
 }
-/* Match GAIN's responsive article columns */
-@media (max-width: 767px) {
-    #gain-pokemon-grid .gain-pokemon-card {
-        grid-column: span 6;
-    }
-}
-@media (max-width: 639px) {
-    #gain-pokemon-grid .gain-pokemon-card {
-        grid-column: span 12;
-    }
-}
-@media (max-width: 380px) {
-    #gain-pokemon-grid .gain-pokemon-card-back {
-        padding: 16px;
-        gap: 10px;
-    }
-    #gain-pokemon-grid .gain-pokemon-card-back p {
-        font-size: 14px;
-    }
-}
-/* Subtle card appearance animation */
-#gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading) {
-    animation: gain-pokemon-appear 220ms ease-out both;
-}
-@keyframes gain-pokemon-appear {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-/*
-    * Stronger border without resizing the card.
-    * The inset shadow adds visual weight inside the 1px border.
-    */
-@media (hover: hover) {
-    #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover {
-        border-color: var(--wp--preset--color--not-black, #001400);
-        box-shadow: inset 0 0 0 1px var(--wp--preset--color--not-black, #001400);
-        transform: none !important;
-    }
-}
+
 /* Loading skeleton shimmer */
 #gain-pokemon-grid .gain-pokemon-card--loading > div {
     background: linear-gradient(
@@ -262,36 +281,15 @@
     background-size: 200% 100%;
     animation: gain-pokemon-shimmer 1.4s linear infinite;
 }
+
 @keyframes gain-pokemon-shimmer {
     to { background-position: -200% 0; }
 }
-/* Accessibility: respect reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-    #gain-pokemon-grid .gain-pokemon-card-inner,
-    #gain-pokemon-grid .gain-pokemon-card {
-        transition: none !important;
-        animation: none !important;
-    }
-    #gain-pokemon-grid .gain-pokemon-card--loading > div {
-        animation: none !important;
-    }
-}
-/* Keep the card's existing dimensions */
-#gain-pokemon-grid .gain-pokemon-card {
-    border-color: transparent;
-    box-shadow: none !important;
-    isolation: isolate;
-}
-/* Draw the 1px border above the rotating faces */
-#gain-pokemon-grid .gain-pokemon-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    pointer-events: none;
-    border: 1px solid var(--wp--custom--color--grey-light, #e3e3e5);
-    transition: none;
-}
+
+/* ============================================================
+   5. CARD HOVER STATE
+   ============================================================ */
+
 /* Hover: darker border only, no added thickness or movement */
 @media (hover: hover) {
     #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover {
@@ -299,7 +297,63 @@
         box-shadow: none !important;
         transform: none !important;
     }
+
     #gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading):hover::after {
         border-color: var(--wp--preset--color--not-black, #001400);
+    }
+}
+
+/* ============================================================
+   6. RESPONSIVE LAYOUT
+   ============================================================ */
+
+/* Match GAIN's responsive article columns */
+@media (max-width: 767px) {
+    #gain-pokemon-grid .gain-pokemon-card {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 639px) {
+    #gain-pokemon-grid .gain-pokemon-card {
+        grid-column: span 12;
+    }
+}
+
+@media (max-width: 380px) {
+    #gain-pokemon-grid .gain-pokemon-card-back {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    #gain-pokemon-grid .gain-pokemon-card-back p {
+        font-size: 14px;
+    }
+}
+
+/* ============================================================
+   7. ANIMATIONS AND REDUCED MOTION
+   ============================================================ */
+
+/* Subtle card appearance animation */
+#gain-pokemon-grid .gain-pokemon-card:not(.gain-pokemon-card--loading) {
+    animation: gain-pokemon-appear 220ms ease-out both;
+}
+
+@keyframes gain-pokemon-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Accessibility: respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    #gain-pokemon-grid .gain-pokemon-card-inner,
+    #gain-pokemon-grid .gain-pokemon-card {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    #gain-pokemon-grid .gain-pokemon-card--loading > div {
+        animation: none !important;
     }
 }

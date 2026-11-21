@@ -78,7 +78,7 @@ My goal was to meet the functional requirements while keeping the implementation
 ### Key Decisions
 
 - **Separate rendering container:** Created a Pokémon grid outside React's managed article list so React wouldn't overwrite the injected cards.
-- **Early stylesheet loading:** Added CSS rules that hide the original article grid before the Pokémon interface renders. Loading the separate stylesheet before page rendering prevents the original articles from briefly appearing.
+- **Early stylesheet loading:** Added CSS rules to hide the original article grid. Loading the separate stylesheet before the page renders helps prevent the original articles from briefly appearing.
 - **SPA navigation:** Used a `MutationObserver` to detect page changes and render Pokémon corresponding to the current URL.
 - **Sequential Pokémon IDs:** Mapped the existing pagination to groups of 12 Pokémon (1–12, 13–24, etc.).
 - **Caching:** Cached successfully fetched pages to avoid unnecessary repeat requests when navigating backward and forward.
@@ -112,6 +112,7 @@ My goal was to meet the functional requirements while keeping the implementation
 - Organized functionality into logically named helper functions and code sections to make it easier to maintain, explain, and modify during the live interview.
 - Added guards against duplicate UI initialization when scripts are executed more than once.
 - Kept CSS in separate stylesheets, as required, so it can be injected into the document's `<head>` independently of the JavaScript.
+- Designed the implementations to initialize when their required page elements become available, supporting execution before the page has finished loading.
 
 ### Dependency on the Existing Website
 
@@ -133,29 +134,52 @@ My goal was to meet the functional requirements while keeping the implementation
 
 ### Testing Performed
 
-- Manually exercised the main questionnaire, drawer, and Pokémon interactions.
-- Checked responsive layouts at mobile, tablet, and desktop widths.
-- Verified that the separated CSS and JavaScript work together through DevTools Console injection.
-- Checked the presence of required UI elements and guards against duplicate initialization.
-- Tested card flipping, type filtering, pagination, and navigation behaviours.
-- Reviewed accessibility-related states, including keyboard interaction and focus styling.
+**Task 1 — Dynamic Modal**
 
-### Final Checks Before Submission
+- Tested the questionnaire's question navigation, answer selection, results, and editing behaviour.
+- Verified that article recommendations match the homepage's Insights entries, including their titles and destination URLs.
+- Confirmed that the questionnaire section, modal, and progress indicators are not duplicated after repeated script execution.
+- Tested the separated CSS and JavaScript together through DevTools Console injection.
+- Tested execution through Tampermonkey.
 
-- Reconfirm questionnaire behaviour with the final separated CSS and JavaScript.
-- Verify repeat execution does not introduce duplicate elements or event listeners.
-- Verify the original blog articles do not flash when the Pokémon stylesheet is loaded before page rendering.
-- Confirm final code and README instructions match the submitted files.
+**Task 2 — Footer Drawer**
+
+- Verified that the drawer's card count matches the homepage Work slider.
+- Confirmed the case-study titles, links, images, descriptions, and tooltip elements are present.
+- Verified pagination and the drawer's fixed positioning.
+- Confirmed that repeated initialization does not create duplicate drawer or overlay elements.
+- Manually tested opening, closing, carousel navigation, tooltips, dragging, and responsive behaviour.
+
+**Task 3 — SPA DOM Manipulation**
+
+- Verified that the standalone stylesheet loads correctly and the Pokémon grid displays 12 cards.
+- Tested Pokémon numbering across different pages, including page 2 starting at #13.
+- Verified all 18 type options, current-page filtering, empty states, and preservation of the selected type while navigating.
+- Tested card flipping and continued interaction after pagination or filtering.
+- Confirmed that the original article grid and original filters are hidden.
+- Checked the interface at mobile, tablet, and desktop sizes.
+
+### Testing Limitations
+
+- Testing was performed against the live website as it existed during development. Future changes to its DOM structure or routing may affect the implementations.
+- The Pokémon task relies on PokeAPI availability and network connectivity.
+- The original article grid must be hidden before the page's first render to guarantee that no article content flashes. This requires the separate stylesheet to be loaded early, rather than injected manually after the page is already visible.
+- Browser-based manual testing does not replace a comprehensive automated regression or accessibility test suite.
 
 ---
 
 ## Final Submission
 
-The assessment is organized into three independent tasks, each with standalone JavaScript and CSS files.
+The assessment is organized into three independent tasks, each containing standalone JavaScript and CSS files.
 
-Before submission, the remaining steps are to:
+For each task, the CSS should be injected into the document's `<head>` before executing the JavaScript in DevTools Console. No build process or additional JavaScript dependencies are required.
 
-- Complete the README with the assessment checklist and clear execution instructions.
-- Record short demonstrations showing the main functionality of each task.
-- Upload the finalized code and documentation to GitHub.
-- Submit the repository link and demonstrations according to the assessment instructions.
+The submission includes:
+
+- **Task 1:** Dynamic Modal — JavaScript and CSS
+- **Task 2:** Footer Drawer — JavaScript and CSS
+- **Task 3:** SPA DOM Manipulation — JavaScript and CSS
+- **README.md:** Setup instructions, task descriptions, and the assessment checklist
+- **DEVLOG.md:** Development approach, technical decisions, challenges, testing, and trade-offs
+
+The remaining submission steps are to finalize the README, record demonstrations, push the completed work to GitHub, and provide the repository link according to the assessment instructions.
